@@ -1,0 +1,241 @@
+{% extends "template.html" %}
+{% block cdn %}
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css">
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker3.min.css">
+{% endblock cdn %}
+{% block title %}
+<h2>會議紀錄管理</h2>
+{% endblock title %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-3">
+            <div>
+                <h2>會議列表</h2>
+                <button type="button" class="btn btn-success text-end ms-auto" onclick="create()">建立</button>
+            </div>
+
+            <div class="list-group" style="max-height: 300px; margin-top: 5px" id="meetingList">
+                <button type="button" class="list-group-item list-group-item-action meetingBtn active" id="choice">會議零
+                </button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議一</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議二</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議三</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議四</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議一</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議二</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議三</button>
+                <button type="button" class="list-group-item list-group-item-action meetingBtn">會議四</button>
+
+            </div>
+
+
+        </div>
+        <div class="col-9">
+            <div class="container">
+                <h2>功能列</h2>
+                <button type="button" class="btn btn-success text-end ms-auto">儲存</button>
+                <button class="btn btn-primary" type="button" data-bs-toggle="offcanvas"
+                        data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">設定列席人員
+                </button>
+            </div>
+            <div class="container" style="margin-top:5px">
+                <div class="mb-3">
+                    <h5 for="exampleFormControlInput1" class="form-label">會議名稱</h5>
+                    <input type="email" class="form-control" id="meetingName" name="name"
+                           placeholder="國立高雄大學109學年度第二學期第一次系務會議">
+                </div>
+                <div class="mb-3">
+                    <h5 for="exampleFormControlInput1" class="form-label">時間</h5>
+                    <input type="date" class="form-control" id="date" name="date">
+                </div>
+                <div class="mb-3">
+                    <h5 for="exampleFormControlInput1" class="form-label">地點</h5>
+                    <input type="email" class="form-control" id="place" name="place" placeholder="資工系會議室">
+                </div>
+                <div class="mb-3 col-5">
+                    <h5>會議種類</h5>
+                    <select class="form-select form-select-lg mb-3" name="type" aria-label=".form-select-lg example">
+                        <option selected style="display:none">請選擇</option>
+                        <option value="0">系務會議</option>
+                        <option value="1">系教評會</option>
+                        <option value="2">系課程委員會</option>
+                        <option value="3">招生暨學生事務委員會</option>
+                        <option value="4">系發展委員會</option>
+                    </select>
+                </div>
+
+                <div style="margin-top: 5px">
+                    <button type="button" id="add_discussion" class="btn btn-primary">新增討論事項</button>
+                    <div style="margin-top: 5px " id="input_discussion">
+
+                    </div>
+                </div>
+                <div>
+                    <button type="button" id="add_announce" class="btn btn-primary">新增報告事項</button>
+                    <div style="margin-top: 5px " id="input_announce">
+
+                    </div>
+                </div>
+                <div>
+                    <button type="button" id="add_extempore" class="btn btn-primary">新增臨時動議</button>
+                    <div style="margin-top: 5px " id="input_extempore">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- 右側拉動式畫布(列席人員) -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 id="offcanvasRightLabel">列席人員表</h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" name="p1" id="flexCheckDefault">
+                <label class="form-check-label" for="flexCheckDefault">
+                    人員1
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" name="p2" id="flexCheckChecked">
+                <label class="form-check-label" for="flexCheckChecked">
+                    人員2
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" name="p3" id="member1">
+                <label class="form-check-label" for="member1">
+                    人員3
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" name="p4" id="member2">
+                <label class="form-check-label" for="member2">
+                    人員4
+                </label>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+		var input_wrapper=$("#input_wrapper");
+		var add=$("#add");
+		x=1;
+		y=1;
+		z=1;
+		$(add_discussion).click(function (e){
+			$(input_discussion).append($("#discussionBlock").html())
+			x++;
+		});
+
+		$(add_announce).click(function (e){
+			$(input_announce).append($("#announceBlock").html());
+			y++;
+		});
+
+		$(add_extempore).click(function (e){
+			$(input_extempore).append($("#extemporeBlock").html());
+			z++;
+		});
+
+
+		$(meetingList).on('click', '.meetingBtn', function(){
+    		document.getElementById("choice").classList.remove("active");
+			document.getElementById("choice").disabled="";
+			document.getElementById("choice").id="";
+			this.classList.add("active");
+			this.id="choice";
+			this.disabled="disabled";
+		});
+
+		function create(){
+			document.getElementById("choice").classList.remove("active");
+			document.getElementById("choice").disabled="";
+			document.getElementById("choice").id="";
+			$(meetingList).append($(newMeetingBtn).html());
+			$(newMeeting).disabled="disabled";
+			$(newMeeting).id="choice";
+			document.getElementById("meetingList").scrollTop=document.getElementById("meetingList").scrollHeight;
+
+		}
+
+
+
+</script>
+
+<script id="newMeetingBtn">
+		<button type="button" id="newMeeting" class="list-group-item list-group-item-action meetingBtn active">新會議</button>
+
+</script>
+
+<script id="discussionBlock">
+		<div style="border-radius:10px;border-style:solid;" >
+			<h4 style="margin-left:10px">討論事項</h4>
+			<div style="margin:10px;border-radius:10px;">
+				<h5 for="exampleFormControlTextarea1" class="form-label">案由</h5>
+				<div style="margin:10px">
+					<textarea class="form-control" id="Textarea1" rows="2"></textarea>
+				</div>
+				<h5 for="exampleFormControlTextarea1" class="form-label">說明</h5>
+				<div style="margin:10px;border-radius:10px;">
+					<textarea class="form-control" id="Textarea2" rows="3"></textarea>
+				</div>
+				<h5 for="exampleFormControlTextarea1" class="form-label">決議</h5>
+				<div style="margin:10px;border-radius:10px;">
+					<textarea class="form-control" id="Textarea2" rows="2"></textarea>
+				</div>
+			</div>
+		</div>
+
+
+</script>
+
+<script id="announceBlock">
+		<div style="border-radius:10px;border-style:solid;" >
+			<h4 style="margin-left:10px">報告事項</h4>
+			<div style="margin:10px;border-radius:10px;">
+				<h5 for="exampleFormControlTextarea1" class="form-label">說明</h5>
+				<div style="margin:10px;border-radius:10px;">
+					<textarea class="form-control" id="Textarea2" rows="3"></textarea>
+				</div>
+			</div>
+		</div>
+
+</script>
+
+<script id="extemporeBlock">
+		<div style="border-radius:10px;border-style:solid;" >
+			<h4 style="margin-left:10px">臨時動議</h4>
+			<div style="margin:10px;border-radius:10px;">
+				<h5 for="exampleFormControlTextarea1" class="form-label">案由</h5>
+				<div style="margin:10px">
+					<textarea class="form-control" id="Textarea1" rows="2"></textarea>
+				</div>
+				<h5 for="exampleFormControlTextarea1" class="form-label">說明</h5>
+				<div style="margin:10px;border-radius:10px;">
+					<textarea class="form-control" id="Textarea2" rows="3"></textarea>
+				</div>
+				<h5 for="exampleFormControlTextarea1" class="form-label">決議</h5>
+				<div style="margin:10px;border-radius:10px;">
+					<textarea class="form-control" id="Textarea2" rows="2"></textarea>
+				</div>
+			</div>
+		</div>
+
+</script>
+<script src=“https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js"></script>
+
+{% endblock content %}
+
+
+
+
