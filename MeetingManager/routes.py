@@ -1,4 +1,4 @@
-from flask import Flask, render_template, url_for
+from flask import Flask, render_template, url_for, jsonify
 from MeetingManager import app
 
 
@@ -32,3 +32,12 @@ def absent():
 def login():
     return render_template('login.html')
 
+
+@app.route("/getMeetingMinutes")
+def getMeetingMinutes():
+    return jsonify({'name': '高雄大學第987次會議', 'date': '2021/01/01', 'place': '工學院廁所'})
+
+
+@app.route("/getMemberData")
+def getMemberData():
+    return jsonify({'name': '黑奴', 'sex': '男', 'phone': '09755111'})
