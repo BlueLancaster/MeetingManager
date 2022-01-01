@@ -24,43 +24,48 @@
             </div>
         </div>
         <div class="col-9">
-            <div>
-                <h2>功能列</h2>
-                <button type="button" class="btn btn-success text-end ms-auto">儲存</button>
-            </div>
-            <div style="margin-top:5px">
-                <div class="mb-3">
-                    <h5 for="name" class="form-label">姓名</h5>
-                    <input class="form-control" id="name" name="name" placeholder="">
+            <form method="post" action="{{url_for('submitMemberData')}}">
+                <div>
+                    <h2>功能列</h2>
+                    <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
                 </div>
-                <div class="mb-3 col-4">
-                    <h5>身分</h5>
-                    <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id="role"
-                            name="role" onchange="roleChange(this)">
-                        <option selected style="display:none">請選擇</option>
-                        <option value="0">系上老師</option>
-                        <option value="1">系助理</option>
-                        <option value="2">校外老師</option>
-                        <option value="3">業界專家</option>
-                        <option value="4">學生代表</option>
-                    </select>
+                <div style="margin-top:5px">
+                    <div class="mb-3">
+                        <h5 for="name" class="form-label" required>姓名</h5>
+                        <input class="form-control" id="name" name="name" placeholder="">
+                    </div>
+                    <div class="mb-3 col-4">
+                        <h5>身分</h5>
+                        <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id="role" name="role" onchange="roleChange(this)">
+                            <option selected style="display:none">請選擇</option>
+                            <option value="0">系上老師</option>
+                            <option value="1">系助理</option>
+                            <option value="2">校外老師</option>
+                            <option value="3">業界專家</option>
+                            <option value="4">學生代表</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="sex" class="form-label">性別</h5>
+                        <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id="sex" name="sex"">
+                            <option selected style="display:none">請選擇</option>
+                            <option value="0">男</option>
+                            <option value="1">女</option>
+                            <option value="2">其他</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="phone" class="form-label" required>手機</h5>
+                        <input class="form-control" id="phone" name="phone" placeholder="">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="email" class="form-label" required>email</h5>
+                        <input type="email" class="form-control" id="email" name="email" placeholder="">
+                    </div>
+                    <div id="content">
+                    </div>
                 </div>
-                <div class="mb-3">
-                    <h5 for="sex" class="form-label">性別</h5>
-                    <input class="form-control" id="sex" name="sex" placeholder="">
-                </div>
-                <div class="mb-3">
-                    <h5 for="phone" class="form-label">手機</h5>
-                    <input class="form-control" id="phone" name="phone" placeholder="">
-                </div>
-                <div class="mb-3">
-                    <h5 for="email" class="form-label">email</h5>
-                    <input class="form-control" id="email" name="email" placeholder="">
-                </div>
-                <div id="content">
-                </div>
-
-            </div>
+            </form>
         </div>
     </div>
 </div>
@@ -72,7 +77,7 @@
             $(content).append($(pr).html())
         } else if (select.value == 1) {
             $(content).empty();
-            $(content).append($(assist).html())
+            $(content).append($(assistant).html())
         } else if (select.value == 2) {
             $(content).empty();
             $(content).append($(teacher).html())
@@ -99,8 +104,7 @@
         document.getElementById("choice").disabled = "";
         document.getElementById("choice").id = "";
         $(memberList).append($(newMemberBtn).html());
-        $(newMember).disabled = "disabled";
-        $(newMember).id = "choice";
+        $(newMember).attr('id','choice');
         document.getElementById("memberList").scrollTop = document.getElementById("memberList").scrollHeight;
     }
 
@@ -140,7 +144,7 @@
         <input class="form-control" id="officePhone" name="officePhone" placeholder="">
     </div>
 </script>
-<script id="assist">
+<script id="assistant">
     <div class="mb-3">
         <h5 for="officePhone" class="form-label">phone</h5>
         <input class="form-control" id="officePhone" name="officePhone" placeholder="">
@@ -214,8 +218,7 @@
     </div>
 </script>
 <script id="newMemberBtn">
-    <button type="button" id="newMember" name="newMember"
-            class="list-group-item list-group-item-action memberBtn active">新老鼠</button>
+    <button type="button" id="newMember" name="newMember" class="list-group-item list-group-item-action memberBtn active">新老鼠</button>
 </script>
 
 {% endblock content %}
