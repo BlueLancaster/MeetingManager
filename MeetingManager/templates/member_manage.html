@@ -113,8 +113,8 @@
     $('.memberBtn').click(
         function (){
             $.ajax({
-                  url:$SCRIPT_ROOT+"/getMemberData",
                   method:"GET",
+                  url:$SCRIPT_ROOT+"/getMemberData",
                   success:function(data){
                     document.getElementById("name").value=data.name;
                     document.getElementById("sex").value=data.sex;
@@ -220,5 +220,6 @@
 <script id="newMemberBtn">
     <button type="button" id="newMember" name="newMember" class="list-group-item list-group-item-action memberBtn active">新老鼠</button>
 </script>
+
 
 {% endblock content %}

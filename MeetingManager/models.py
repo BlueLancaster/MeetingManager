@@ -6,7 +6,7 @@ from MeetingManager import db
 
 class Meeting(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30), nullable=False)
+    name = db.Column(db.String(30), unique=True, nullable=False)
     type = db.Column(db.String(10), nullable=False)
     datetime = db.Column(db.String(30), nullable=False)
     place = db.Column(db.String(30), nullable=False)
@@ -48,9 +48,10 @@ class Discussion(db.Model):
     result = db.Column(db.Text)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
-    def __init__(self, brief, content):
+    def __init__(self, brief, content, result):
         self.brief = brief
         self.content = content
+        self.result = result
 
 
 class Extempore(db.Model):
@@ -60,9 +61,10 @@ class Extempore(db.Model):
     result = db.Column(db.Text)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
-    def __init__(self, brief, content):
+    def __init__(self, brief, content, result):
         self.brief = brief
         self.content = content
+        self.result = result
 
 
 class Appendix(db.Model):
