@@ -56,11 +56,11 @@
                         <h5>會議種類</h5>
                         <select class="form-select form-select-lg mb-3" id="type" name="type" aria-label=".form-select-lg example" required>
                             <option selected style="display:none">請選擇</option>
-                            <option value="0">系務會議</option>
-                            <option value="1">系教評會</option>
-                            <option value="2">系課程委員會</option>
-                            <option value="3">招生暨學生事務委員會</option>
-                            <option value="4">系發展委員會</option>
+                            <option value="系務會議">系務會議</option>
+                            <option value="系教評會">系教評會</option>
+                            <option value="系課程委員會">系課程委員會</option>
+                            <option value="招生暨學生事務委員會">招生暨學生事務委員會</option>
+                            <option value="系發展委員會">系發展委員會</option>
                         </select>
                     </div>
 
@@ -209,7 +209,7 @@
                             document.getElementById("meetingName").value=data.name;
                             document.getElementById("date").value=data.date;
                             document.getElementById("place").value=data.place;
-                            document.getElementById("type")[data.type+1].selected=true;
+                            document.getElementById("type")[getMeetingTypeIndex(data.type)].selected=true;
                             if (data.discussionList){
                                 for(var i = 0 ; i < data.discussionList.length ; i++){
                                     $(input_discussion).append($("#discussionBlock").html())
@@ -280,6 +280,20 @@
             document.getElementById("date").value="";
             document.getElementById("place").value="";
             document.getElementById("type")[0].selected=true;
+        }
+
+        function getMeetingTypeIndex(meetingType){
+            if (meetingType === '系務會議')
+            return 1;
+            else if (meetingType === '系教評會')
+            return 2;
+            else if (meetingType === '系課程委員會')
+            return 3;
+            else if (meetingType === '招生暨學生事務委員會')
+            return 4;
+            else if (meetingType === '系發展委員會')
+            return 5;
+
         }
 
         function deleteMeeting(){

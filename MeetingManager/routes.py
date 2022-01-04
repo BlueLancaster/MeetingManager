@@ -47,7 +47,7 @@ def getMeetingMinutes():
     extemporeList = ModelToList(Extempore.query.filter_by(meetingId=meeting.id))
     return jsonify(
         {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
-         'type': meetingTypeTrans(meeting.type),
+         'type': meeting.type,
          'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList})
 
 
@@ -98,11 +98,10 @@ def submitMeetingMinutes():
     extemporeBriefList = request.form.getlist('extemporeName')
     extemporeContentList = request.form.getlist('extemporeContent')
     extemporeResultList = request.form.getlist('extemporeResult')
-    meetingType = meetingTypeTrans(eval(data.get('type')))
     meeting = Meeting.query.filter_by(id=request.values.get('id')).first()
 
     if meeting is None:
-        newMeeting = Meeting(data.get('name'), meetingType, data.get('date'), data.get('place'))
+        newMeeting = Meeting(data.get('name'), data.get('type'), data.get('date'), data.get('place'))
         if discussionBriefList:
             for i in range(len(discussionBriefList)):
                 discussion = Discussion(discussionBriefList[i], discussionContentList[i], discussionResultList[i])
@@ -122,7 +121,7 @@ def submitMeetingMinutes():
         db.session.commit()
     else:
         meeting.name = data.get('name')
-        meeting.type = meetingType
+        meeting.type = data.get('type')
         meeting.datetime = data.get('date')
         meeting.place = data.get('place')
         if discussionBriefList:
@@ -268,31 +267,6 @@ def deleteMember():
     db.session.delete(Member.query.filter_by(id=memberId).first())
     db.session.commit()
     return redirect(url_for('memberManage'))
-
-
-def meetingTypeTrans(meetingType):
-    if type(meetingType) == int:
-        if meetingType == 0:
-            return '系務會議'
-        elif meetingType == 1:
-            return '系教評會'
-        elif meetingType == 2:
-            return '系課程委員會'
-        elif meetingType == 3:
-            return '招生暨學生事務委員會'
-        elif meetingType == 4:
-            return '系發展委員會'
-    elif type(meetingType) == str:
-        if meetingType == '系務會議':
-            return 0
-        elif meetingType == '系教評會':
-            return 1
-        elif meetingType == '系課程委員會':
-            return 2
-        elif meetingType == '招生暨學生事務委員會':
-            return 3
-        elif meetingType == '系發展委員會':
-            return 4
 
 
 def ModelToList(ModelList):
