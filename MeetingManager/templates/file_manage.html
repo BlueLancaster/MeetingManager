@@ -4,37 +4,43 @@
 {% endblock title %}
 {% block content %}
 <div class="container">
-
     <div class="row">
-        <div>
+        <form enctype="multipart/form-data" method="post" action="{{url_for('submitFile')}}">
             <div>
-                <h2>功能列</h2>
+                <div>
+                    <h2>功能列</h2>
+                    <button type="submit" class="btn btn-success text-end ms-auto" id="submitBtn" disabled>儲存</button>
+                </div>
+                <div style="margin-top: 5px">
+                    <div class="mb-3">
+                        <h5 for="name" class="form-label">附件名稱</h5>
+                        <input type="text" class="form-control" id="name" name="name" placeholder="" required>
+                    </div>
+                    <div class="lg-mb-3 col-5">
+                        <h5>所屬會議</h5>
+                        <select class="form-select form-select-lg mb-3" name="belongingMeeting"
+                                aria-label=".form-select-lg example" onchange="enableSubmit()" required>
+                            <option selected style="display:none" >請選擇</option>
+                            {% for meeting in meetingList %}
+                            <option value="{{meeting[0]}}">{{meeting[1]}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <h5>上傳檔案</h5>
+                        <label for="file" class="form-label">檔案格式限制:pdf png jpg jpeg</label>
+                        <input class="form-control" type="file" id="file" name="file" required>
+                    </div>
+                </div>
             </div>
-            <div>
-                <div class="mb-3">
-                    <h5 for="name" class="form-label">附件名稱</h5>
-                    <input type="email" class="form-control" id="name" placeholder="">
-                </div>
-                <div class="lg-mb-3 col-5">
-                    <h5>所屬會議</h5>
-                    <select class="form-select form-select-lg mb-3" name="belongingMeeting"
-                            aria-label=".form-select-lg example">
-                        <option selected style="display:none">請選擇</option>
-                        <option value="0">會議1</option>
-                        <option value="1">會議3</option>
-                        <option value="2">會議4</option>
-                        <option value="3">會議0</option>
-                        <option value="4">會議2</option>
-                    </select>
-                </div>
-                <div class="mb-3">
-                    <h5>上傳檔案</h5>
-                    <label for="formFile" class="form-label">檔案格式限制:pdf,ppt</label>
-                    <input class="form-control" type="file" id="formFile" name="file">
-                </div>
-            </div>
-        </div>
+        </form>
     </div>
 </div>
+
+<script>
+    function enableSubmit(){
+        document.getElementById("submitBtn").disabled="";
+    }
+</script>
 {% endblock content %}
 

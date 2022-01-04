@@ -69,8 +69,14 @@ class Extempore(db.Model):
 
 class Appendix(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    filePath = db.Column(db.String(30), nullable=False)
+    name = db.Column(db.String(30),nullable=False)
+    filePath = db.Column(db.String(100), nullable=False)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
+
+    def __init__(self, name, filePath, meetingId):
+        self.name = name
+        self.filePath = filePath
+        self.meetingId = meetingId
 
 
 class Member(db.Model):

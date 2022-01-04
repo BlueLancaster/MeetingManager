@@ -1,7 +1,12 @@
-from flask import Flask, render_template, url_for, jsonify, request, redirect
+import os
+from flask import Flask, render_template, url_for, jsonify, request, redirect, send_from_directory
+from werkzeug.utils import secure_filename
 
 from MeetingManager import app, db
 from MeetingManager.models import *
+
+UPLOAD_FOLDER = os.path.abspath(os.getcwd()) + '\\MeetingManager\\static\\files'
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 
 
 @app.route("/")
@@ -24,7 +29,8 @@ def memberManage():
 
 @app.route("/fileManage")
 def fileManage():
-    return render_template('file_manage.html')
+    meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
+    return render_template('file_manage.html', meetingList=meetingList)
 
 
 @app.route("/absent")
@@ -82,6 +88,14 @@ def getMemberData():
         data['ESystem'] = member.student.eSystem
         data['grade'] = member.student.grade
     return jsonify(data)
+
+
+'''
+@app.route("/getFile")
+def getFile():
+    return send_from_directory(app.config['UPLOAD_FOLDER'],
+                               filename)
+'''
 
 
 # 接收會議紀錄表單
@@ -253,6 +267,19 @@ def submitMemberData():
     return redirect(url_for('memberManage'))
 
 
+@app.route("/submitFile", methods=['POST'])
+def submitFile():
+    file = request.files['file']
+    if file and allowed_file(file.filename):
+        fileName = secure_filename(file.filename)
+        filePath = os.path.join(UPLOAD_FOLDER, fileName)
+        file.save(filePath)
+        appendix = Appendix(request.values.get('name'), filePath, eval(request.values.get('belongingMeeting')))
+        db.session.add(appendix)
+        db.session.commit()
+    return redirect(url_for('fileManage'))
+
+
 @app.route("/deleteMeeting", methods=['POST'])
 def deleteMeeting():
     meetingId = request.values.get('deleteId')
@@ -281,3 +308,8 @@ def ModelToList(ModelList):
         for announce in ModelList:
             resultList.append([announce.id, announce.content])
         return resultList
+
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
