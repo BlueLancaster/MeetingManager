@@ -7,7 +7,6 @@ from MeetingManager.models import *
 @app.route("/")
 @app.route("/home")
 def home():
-    db.create_all()
     return render_template("home.html")
 
 
@@ -19,7 +18,8 @@ def meetingManage():
 
 @app.route("/memberManage")
 def memberManage():
-    return render_template("member_manage.html")
+    memberList = Member.query.with_entities(Member.id, Member.name).all()
+    return render_template("member_manage.html", memberList=memberList)
 
 
 @app.route("/fileManage")
@@ -52,9 +52,36 @@ def getMeetingMinutes():
 
 
 # ajax請求人員資料
-@app.route("/getMemberData")
+@app.route("/getMemberData", methods=['POST'])
 def getMemberData():
-    return jsonify({'name': '黑奴', 'sex': '男', 'phone': '09755111'})
+    memberId = request.values.get('memberId')
+    member = Member.query.filter_by(id=memberId).first()
+    data = {'id': member.id, 'name': member.name, 'identity': member.identity, 'sex': member.sex, 'phone': member.phone,
+            'email': member.email,
+            'password': member.password}
+    if member.identity == '系上老師':
+        data['rank'] = member.intramuralTeacher.rank
+        data['officePhone'] = member.intramuralTeacher.officePhone
+    elif member.identity == '系助理':
+        data['officePhone'] = member.assistant.officePhone
+    elif member.identity == '校外老師':
+        data['school'] = member.externalTeacher.school
+        data['department'] = member.externalTeacher.department
+        data['title'] = member.externalTeacher.title
+        data['officePhone'] = member.externalTeacher.officePhone
+        data['address'] = member.externalTeacher.address
+        data['bankAccount'] = member.externalTeacher.bankAccount
+    elif member.identity == '業界專家':
+        data['companyName'] = member.expert.companyName
+        data['title'] = member.expert.title
+        data['officePhone'] = member.expert.officePhone
+        data['address'] = member.expert.address
+        data['bankAccount'] = member.expert.bankAccount
+    elif member.identity == '學生代表':
+        data['studentId'] = member.student.studentId
+        data['ESystem'] = member.student.eSystem
+        data['grade'] = member.student.grade
+    return jsonify(data)
 
 
 # 接收會議紀錄表單
@@ -138,16 +165,93 @@ def submitMeetingMinutes():
 #    return render_template("meeting_manage.html")
 
 
-# 接收人員資料表單
+# 接收人員資料表單 Member('mouse','男','0645462','b5645@xuite.net','校外老師','00000')
 @app.route("/submitMemberData", methods=['POST'])
 def submitMemberData():
-    print(request.values.get('name'))
-    print(request.values.get('role'))
-    print(request.values.get('sex'))
-    print(request.values.get('phone'))
-    print(request.values.get('email'))
+    data = request.values
+    identity = data.get('identity')
+    member = Member.query.filter_by(id=data.get('id')).first()
+    if member is None:
+        newMember = Member(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'),
+                           data.get('identity'),
+                           data.get('password'))
+        if identity == '系上老師':
+            moreInfo = IntramuralTeacher(data.get('rank'), data.get('officePhone'))
+            newMember.intramuralTeacher = moreInfo
+            db.session.add(moreInfo)
+        elif identity == '系助理':
+            moreInfo = Assistant(data.get('officePhone'))
+            newMember.assistant = moreInfo
+            db.session.add(moreInfo)
+        elif identity == '校外老師':
+            moreInfo = ExternalTeacher(data.get('school'), data.get('department'), data.get('title'),
+                                       data.get('officePhone'), data.get('address'), data.get('bankAccount'))
+            newMember.externalTeacher = moreInfo
+            db.session.add(moreInfo)
+        elif identity == '業界專家':
+            moreInfo = Expert(data.get('companyName'), data.get('title'), data.get('officePhone'), data.get('address'),
+                              data.get('bankAccount'))
+            newMember.expert = moreInfo
+            db.session.add(moreInfo)
+        elif identity == '學生代表':
+            moreInfo = Student(data.get('studentId'), data.get('ESystem'), eval(data.get('grade')))
+            newMember.student = moreInfo
+            db.session.add(moreInfo)
+        db.session.add(newMember)
+    else:
+        if identity == member.identity:
+            if identity == '系上老師':
+                member.intramuralTeacher.set(data.get('rank'), data.get('officePhone'))
+            elif identity == '系助理':
+                member.assistant.set(data.get('officePhone'))
+            elif identity == '校外老師':
+                member.externalTeacher.set(data.get('school'), data.get('department'), data.get('title'),
+                                           data.get('officePhone'), data.get('address'), data.get('bankAccount'))
+            elif identity == '業界專家':
+                member.expert.set(data.get('companyName'), data.get('title'), data.get('officePhone'),
+                                  data.get('address'),
+                                  data.get('bankAccount'))
+            elif identity == '學生代表':
+                member.student.set(data.get('studentId'), data.get('ESystem'), eval(data.get('grade')))
+        else:
+            if member.identity == '系上老師':
+                db.session.delete(member.intramuralTeacher)
+            elif member.identity == '系助理':
+                db.session.delete(member.assistant)
+            elif member.identity == '校外老師':
+                db.session.delete(member.externalTeacher)
+            elif member.identity == '業界專家':
+                db.session.delete(member.expert)
+            elif member.identity == '學生代表':
+                db.session.delete(member.student)
+            if identity == '系上老師':
+                moreInfo = IntramuralTeacher(data.get('rank'), data.get('officePhone'))
+                member.intramuralTeacher = moreInfo
+                db.session.add(moreInfo)
+            elif identity == '系助理':
+                moreInfo = Assistant(data.get('officePhone'))
+                member.assistant = moreInfo
+                db.session.add(moreInfo)
+            elif identity == '校外老師':
+                moreInfo = ExternalTeacher(data.get('school'), data.get('department'), data.get('title'),
+                                           data.get('officePhone'), data.get('address'), data.get('bankAccount'))
+                member.externalTeacher = moreInfo
+                db.session.add(moreInfo)
+            elif identity == '業界專家':
+                moreInfo = Expert(data.get('companyName'), data.get('title'), data.get('officePhone'),
+                                  data.get('address'),
+                                  data.get('bankAccount'))
+                member.expert = moreInfo
+                db.session.add(moreInfo)
+            elif identity == '學生代表':
+                moreInfo = Student(data.get('studentId'), data.get('ESystem'), eval(data.get('grade')))
+                member.student = moreInfo
+                db.session.add(moreInfo)
+        member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
+                   data.get('password'))
 
-    return render_template("member_manage.html")
+    db.session.commit()
+    return redirect(url_for('memberManage'))
 
 
 @app.route("/deleteMeeting", methods=['POST'])
@@ -156,6 +260,14 @@ def deleteMeeting():
     db.session.delete(Meeting.query.filter_by(id=meetingId).first())
     db.session.commit()
     return redirect(url_for('meetingManage'))
+
+
+@app.route("/deleteMember", methods=['POST'])
+def deleteMember():
+    memberId = request.values.get('deleteId')
+    db.session.delete(Member.query.filter_by(id=memberId).first())
+    db.session.commit()
+    return redirect(url_for('memberManage'))
 
 
 def meetingTypeTrans(meetingType):

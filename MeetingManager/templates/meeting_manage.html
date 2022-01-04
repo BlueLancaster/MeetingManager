@@ -24,7 +24,7 @@
 
 
         </div>
-        <div class="col-9">
+        <div class="col-9" id="inputArea" style="display:none">
             <form method="post" action="{{url_for('submitMeetingMinutes')}}">
                 <div class="container">
                     <h2>功能列</h2>
@@ -37,7 +37,7 @@
                 </div>
                 <div class="container" style="margin-top:5px">
                     <div class="mb-3">
-                        <h5 for="meetingName" class="form-label">會議編號</h5>
+                        <h5 for="id" class="form-label">會議編號</h5>
                         <input type="text" class="form-control" id="id" name="id" readonly="readonly">
                     </div>
                     <div class="mb-3">
@@ -174,7 +174,8 @@
 		$(meetingList).on('click', '.meetingBtn', function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
-            console.log("BtnClick!!")
+            console.log("BtnClick!!");
+            $("#inputArea").attr('style','');
             if(document.getElementById("choice"))
             {
                 document.getElementById("choice").classList.remove("active");
@@ -261,12 +262,14 @@
                 document.getElementById("choice").disabled="";
                 document.getElementById("choice").id="";
             }
+            $("#inputArea").attr('style','');
 			$(meetingList).append($(newMeetingBtn).html());
             $(newMeeting).attr('id','choice');
 			document.getElementById("meetingList").scrollTop=document.getElementById("meetingList").scrollHeight;
             clearInput();
             document.getElementById("createNewBtn").disabled="disabled";
-		};
+            document.getElementById("deleteBtn").disabled="disabled";
+		}
 
         function clearInput(){
             document.getElementById("input_discussion").innerHTML="";

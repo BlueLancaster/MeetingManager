@@ -90,8 +90,21 @@ class Member(db.Model):
                                         cascade='all, delete-orphan')
     attend = association_proxy('attendanceAssociation', 'meeting', creator=lambda meeting: Attend(meeting=meeting))
 
-    def __repr__(self):
-        return f"Member('{self.id}','{self.name}','{self.sex}',)"
+    def __init__(self, name, sex, phone, email, identity, password):
+        self.name = name
+        self.sex = sex
+        self.phone = phone
+        self.email = email
+        self.identity = identity
+        self.password = password
+
+    def set(self, name, sex, phone, email, identity, password):
+        self.name = name
+        self.sex = sex
+        self.phone = phone
+        self.email = email
+        self.identity = identity
+        self.password = password
 
 
 class Attend(db.Model):
@@ -101,10 +114,24 @@ class Attend(db.Model):
     meeting = db.relationship(Meeting, backref=backref('attendanceAssociation', cascade='all, delete-orphan'))
     member = db.relationship(Member, backref=backref('attendanceAssociation', cascade='all, delete-orphan'))
 
+    def __init__(self, meetingId, memberId):
+        self.meetingId = meetingId
+        self.memberId = memberId
+
+    def set(self, meetingId, memberId):
+        self.meetingId = meetingId
+        self.memberId = memberId
+
 
 class Assistant(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('member.id'), primary_key=True)
     officePhone = db.Column(db.String(15))
+
+    def __init__(self, officePhone):
+        self.officePhone = officePhone
+
+    def set(self, officePhone):
+        self.officePhone = officePhone
 
 
 class Expert(db.Model):
@@ -115,12 +142,36 @@ class Expert(db.Model):
     address = db.Column(db.String(60))
     bankAccount = db.Column(db.String(30))
 
+    def __init__(self, companyName, title, officePhone, address, bankAccount):
+        self.companyName = companyName
+        self.title = title
+        self.officePhone = officePhone
+        self.address = address
+        self.bankAccount = bankAccount
+
+    def set(self, companyName, title, officePhone, address, bankAccount):
+        self.companyName = companyName
+        self.title = title
+        self.officePhone = officePhone
+        self.address = address
+        self.bankAccount = bankAccount
+
 
 class Student(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('member.id'), primary_key=True)
     studentId = db.Column(db.String(10), nullable=False, unique=True)
     eSystem = db.Column(db.String(10), nullable=False)
     grade = db.Column(db.Integer, nullable=False)
+
+    def __init__(self, studentId, eSystem, grade):
+        self.studentId = studentId
+        self.eSystem = eSystem
+        self.grade = grade
+
+    def set(self, studentId, eSystem, grade):
+        self.studentId = studentId
+        self.eSystem = eSystem
+        self.grade = grade
 
 
 class ExternalTeacher(db.Model):
@@ -132,8 +183,32 @@ class ExternalTeacher(db.Model):
     address = db.Column(db.String(60))
     bankAccount = db.Column(db.String(30))
 
+    def __init__(self, school, department, title, officePhone, address, bankAccount):
+        self.school = school
+        self.department = department
+        self.title = title
+        self.officePhone = officePhone
+        self.address = address
+        self.bankAccount = bankAccount
+
+    def set(self, school, department, title, officePhone, address, bankAccount):
+        self.school = school
+        self.department = department
+        self.title = title
+        self.officePhone = officePhone
+        self.address = address
+        self.bankAccount = bankAccount
+
 
 class IntramuralTeacher(db.Model):
     id = db.Column(db.Integer, db.ForeignKey('member.id'), primary_key=True)
-    rank = db.Column(db.Integer, nullable=False)
+    rank = db.Column(db.String(10), nullable=False)
     officePhone = db.Column(db.String(15))
+
+    def __init__(self, rank, officePhone):
+        self.rank = rank
+        self.officePhone = officePhone
+
+    def set(self, rank, officePhone):
+        self.rank = rank
+        self.officePhone = officePhone
