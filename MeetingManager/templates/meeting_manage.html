@@ -15,8 +15,6 @@
             </div>
 
             <div class="list-group" style="max-height: 300px; margin-top: 5px" id="meetingList">
-
-<!--                <button type="button" class="list-group-item list-group-item-action meetingBtn active" id="choice">新會議</button> -->
                 {% for meeting in meetingList %}
                     <button type="button" class="list-group-item list-group-item-action meetingBtn" data-id="{{meeting[0]}}" >{{meeting[1]}}</button>
                 {% endfor %}
@@ -178,7 +176,6 @@
 		$(meetingList).on('click', '.meetingBtn', function(e){
             e.preventDefault();
             e.stopImmediatePropagation();
-            console.log("BtnClick!!");
             $("#inputArea").attr('style','');
             if(document.getElementById("choice"))
             {
@@ -199,7 +196,6 @@
                 document.getElementById("deleteBtn").disabled="";
                 var meetingQuery = new FormData();
                 meetingQuery.append('meetingId', $("#choice").data("id"));
-                console.log($("#choice").text())
                 $.ajax({
                       type: "POST",
                       url:$SCRIPT_ROOT+"/getMeetingMinutes",

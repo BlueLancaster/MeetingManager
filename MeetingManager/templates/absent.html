@@ -10,54 +10,83 @@
                 <h2>會議列表</h2>
             </div>
 
-            <div class="list-group" style="max-height: 300px">
-                <button type="button" class="list-group-item list-group-item-action active" aria-current="true">
-                    會議零
-                </button>
-                <button type="button" class="list-group-item list-group-item-action">會議一</button>
-                <button type="button" class="list-group-item list-group-item-action">會議二</button>
-                <button type="button" class="list-group-item list-group-item-action">會議三</button>
-                <button type="button" class="list-group-item list-group-item-action">會議四</button>
-                <button type="button" class="list-group-item list-group-item-action">會議一</button>
-                <button type="button" class="list-group-item list-group-item-action">會議二</button>
-                <button type="button" class="list-group-item list-group-item-action">會議三</button>
-                <button type="button" class="list-group-item list-group-item-action">會議四</button>
+            <div class="list-group" style="max-height: 300px; margin-top: 5px" id="meetingList">
+                {% for meeting in meetingList %}
+                    <button type="button" class="list-group-item list-group-item-action meetingBtn" data-id="{{meeting[0]}}" >{{meeting[1]}}</button>
+                {% endfor %}
             </div>
 
         </div>
-        <div class="col-9">
-            <div>
-                <h2>列席人員列表</h2>
-            </div>
-            <div style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault">
-                    <label class="form-check-label" for="flexCheckDefault">
-                        人員1
-                    </label>
+        <div class="col-9" id="inputArea" style="display: none">
+            <form method="post" action="{{url_for('submitAbsent')}}">
+                <div class="container">
+                    <h2>功能列</h2>
+                    <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked">
-                    <label class="form-check-label" for="flexCheckChecked">
-                        人員2
-                    </label>
+                <div>
+                    <h2>與會人員列表</h2>
+                    <h5>(打勾代表有出席)</h5>
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="member1">
-                    <label class="form-check-label" for="member1">
-                        人員3
-                    </label>
+                <div id="checkBoxArea" style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
+
+
                 </div>
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="member2">
-                    <label class="form-check-label" for="member2">
-                        人員4
-                    </label>
-                </div>
-            </div>
+                <input type="text" style="display: none" class="form-control" id="meetingId" name="meetingId" readonly="readonly">
+            </form>
         </div>
     </div>
 </div>
+
+<script>
+    $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+    $("#meetingList").on('click', '.meetingBtn', function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        $("#inputArea").attr('style','');
+        $("#checkBoxArea").html("");
+        if(document.getElementById("choice"))
+        {
+            document.getElementById("choice").classList.remove("active");
+            document.getElementById("choice").disabled="";
+            document.getElementById("choice").id="";
+        }
+        this.id="choice";
+        this.classList.add("active");
+        this.disabled="disabled";
+        $("#meetingId").val($("#choice").data("id"))
+        var meetingQuery = new FormData();
+        meetingQuery.append('meetingId', $("#choice").data("id"));
+        $.ajax({
+              type: "POST",
+              url:$SCRIPT_ROOT+"/getAbsent",
+              data: meetingQuery,
+              success:function(data){
+                    for(var i =0 ;i<data.attendeeList.length;i++){
+                        $("#checkBoxArea").append($("#checkBoxOfAttendee").html());
+                        $("#newCheckBox").val(data.attendeeList[i][0]);
+                        $("#newCheckBox").prop("checked",data.attendeeList[i][2])
+                        $("#newCheckBox").attr("id","")
+                        $("#memberName").text(data.attendeeList[i][1]);
+                        $("#memberName").attr("id","");
+                    }
+
+                },
+              contentType: false,
+              processData: false,
+              dataType: "json"
+        });
+    });
+
+
+</script>
+
+<script id="checkBoxOfAttendee">
+    <div className="form-check">
+        <input className="form-check-input" type="checkbox" value="" id="newCheckBox" name="present">
+            <label className="form-check-label" id="memberName" htmlFor="newCheckBox">
+            </label>
+    </div>
+</script>
 
 {% endblock content %}
 

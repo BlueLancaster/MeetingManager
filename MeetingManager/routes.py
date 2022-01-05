@@ -36,7 +36,8 @@ def fileManage():
 
 @app.route("/absent")
 def absent():
-    return render_template('absent.html')
+    meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
+    return render_template('absent.html', meetingList=meetingList)
 
 
 @app.route("/login")
@@ -106,6 +107,16 @@ def getFile():
     appendix = Appendix.query.filter_by(id=request.values.get('appendixId')).first()
     return send_from_directory(os.path.dirname(appendix.filePath), os.path.basename(appendix.filePath),
                                as_attachment=True)
+
+
+@app.route("/getAbsent", methods=['POST'])
+def getAbsent():
+    meetingId = request.values.get('meetingId')
+    attendeeList = Attend.query.filter_by(meetingId=meetingId).order_by(Attend.memberId).all()
+    resultList = []
+    for attendee in attendeeList:
+        resultList.append([attendee.memberId, attendee.member.name, attendee.attendOrNot])
+    return jsonify({'attendeeList': resultList})
 
 
 # 接收會議紀錄表單
@@ -291,6 +302,27 @@ def submitFile():
         db.session.add(appendix)
         db.session.commit()
     return redirect(url_for('fileManage'))
+
+
+@app.route("/submitAbsent", methods=['POST'])
+def submitAbsent():
+    flag = 0
+    presentList = request.form.getlist('present')
+    meetingId = request.values.get('meetingId')
+    oldPresentList = Attend.query.filter_by(meetingId=meetingId).order_by(Attend.memberId).all()
+    if len(presentList) == 0:
+        for attendee in oldPresentList:
+            attendee.attendOrNot = 0
+    else:
+        for attendee in oldPresentList:
+            if attendee.memberId == eval(presentList[flag]):
+                attendee.attendOrNot = 1
+                if flag != len(presentList) - 1:
+                    flag += 1
+            else:
+                attendee.attendOrNot = 0
+    db.session.commit()
+    return redirect(url_for('absent'))
 
 
 @app.route("/deleteMeeting", methods=['POST'])
