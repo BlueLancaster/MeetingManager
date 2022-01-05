@@ -17,8 +17,9 @@ def home():
 
 @app.route("/meetingManage")
 def meetingManage():
+    memberList = Member.query.with_entities(Member.id, Member.name).all()
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
-    return render_template("meeting_manage.html", meetingList=meetingList)
+    return render_template("meeting_manage.html", meetingList=meetingList, memberList=memberList)
 
 
 @app.route("/memberManage")
@@ -51,10 +52,20 @@ def getMeetingMinutes():
     discussionList = ModelToList(Discussion.query.filter_by(meetingId=meeting.id))
     announceList = ModelToList(Announce.query.filter_by(meetingId=meeting.id))
     extemporeList = ModelToList(Extempore.query.filter_by(meetingId=meeting.id))
+    appendixList = ModelToList(Appendix.query.filter_by(meetingId=meeting.id))
+    tempList1 = Attend.query.filter_by(meetingId=meetingId, type='出席').with_entities(Attend.memberId).all()
+    tempList2 = Attend.query.filter_by(meetingId=meetingId, type='列席').with_entities(Attend.memberId).all()
+    attendeeList = []
+    observerList = []
+    for attendee in tempList1:
+        attendeeList.append(attendee[0])
+    for observer in tempList2:
+        observerList.append(observer[0])
     return jsonify(
         {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
-         'type': meeting.type,
-         'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList})
+         'type': meeting.type, 'welcomeSpeech': meeting.welcomeSpeech,
+         'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList,
+         'appendixList': appendixList, 'attendeeList': attendeeList, 'observerList': observerList})
 
 
 # ajax請求人員資料
@@ -90,12 +101,11 @@ def getMemberData():
     return jsonify(data)
 
 
-'''
-@app.route("/getFile")
+@app.route("/getFile", methods=['POST'])
 def getFile():
-    return send_from_directory(app.config['UPLOAD_FOLDER'],
-                               filename)
-'''
+    appendix = Appendix.query.filter_by(id=request.values.get('appendixId')).first()
+    return send_from_directory(os.path.dirname(appendix.filePath), os.path.basename(appendix.filePath),
+                               as_attachment=True)
 
 
 # 接收會議紀錄表單
@@ -113,9 +123,11 @@ def submitMeetingMinutes():
     extemporeContentList = request.form.getlist('extemporeContent')
     extemporeResultList = request.form.getlist('extemporeResult')
     meeting = Meeting.query.filter_by(id=request.values.get('id')).first()
-
+    attendeeList = request.form.getlist('attendee')
+    observerList = request.form.getlist('observer')
     if meeting is None:
-        newMeeting = Meeting(data.get('name'), data.get('type'), data.get('date'), data.get('place'))
+        newMeeting = Meeting(data.get('name'), data.get('type'), data.get('date'), data.get('place'),
+                             data.get('welcomeSpeech'))
         if discussionBriefList:
             for i in range(len(discussionBriefList)):
                 discussion = Discussion(discussionBriefList[i], discussionContentList[i], discussionResultList[i])
@@ -131,13 +143,9 @@ def submitMeetingMinutes():
                 extempore = Extempore(extemporeBriefList[i], extemporeContentList[i], extemporeResultList[i])
                 newMeeting.extempore.append(extempore)
                 db.session.add(extempore)
-        db.session.add(newMeeting)
-        db.session.commit()
+                meeting = newMeeting
     else:
-        meeting.name = data.get('name')
-        meeting.type = data.get('type')
-        meeting.datetime = data.get('date')
-        meeting.place = data.get('place')
+        meeting.set(data.get('name'), data.get('type'), data.get('date'), data.get('place'), data.get('welcomeSpeech'))
         if discussionBriefList:
             for i in range(len(discussionIdList)):
                 if discussionIdList[i] == '0':
@@ -158,7 +166,6 @@ def submitMeetingMinutes():
                 else:
                     announce = Announce.query.filter_by(id=announceIdList[i]).first()
                     announce.content = announceContentList[i]
-
         if extemporeBriefList:
             for i in range(len(extemporeIdList)):
                 if extemporeIdList[i] == '0':
@@ -170,12 +177,18 @@ def submitMeetingMinutes():
                     extempore.brief = extemporeBriefList[i]
                     extempore.content = extemporeContentList[i]
                     extempore.result = extemporeResultList[i]
+        for attendee in meeting.attendanceAssociation:
+            db.session.delete(attendee)
         db.session.commit()
 
+    for attendeeId in attendeeList:
+        meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+    for observerId in observerList:
+        meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
+    db.session.add(meeting)
+    db.session.commit()
+
     return redirect(url_for('meetingManage'))
-
-
-#    return render_template("meeting_manage.html")
 
 
 # 接收人員資料表單 Member('mouse','男','0645462','b5645@xuite.net','校外老師','00000')
@@ -296,6 +309,15 @@ def deleteMember():
     return redirect(url_for('memberManage'))
 
 
+@app.route("/deleteFile", methods=["POST"])
+def deleteFile():
+    appendix = Appendix.query.filter_by(id=request.values.get('appendixId')).first()
+    os.remove(appendix.filePath)
+    db.session.delete(appendix)
+    db.session.commit()
+    return redirect(url_for('meetingManage'))
+
+
 def ModelToList(ModelList):
     if not ModelList.all():
         return None
@@ -307,6 +329,10 @@ def ModelToList(ModelList):
     elif isinstance(ModelList[0], Announce):
         for announce in ModelList:
             resultList.append([announce.id, announce.content])
+        return resultList
+    elif isinstance(ModelList[0], Appendix):
+        for appendix in ModelList:
+            resultList.append([appendix.id, appendix.name])
         return resultList
 
 

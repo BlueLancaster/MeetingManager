@@ -30,7 +30,7 @@
                     <h2>功能列</h2>
                     <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
                     <button class="btn btn-info" type="button" data-bs-toggle="offcanvas"
-                            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">設定列席人員
+                            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">設定與會人員
                     </button>
                     <button type="button" class="btn btn-warning text-end ms-auto"  id="deleteBtn" data-bs-toggle="modal" data-bs-target="#deleteModal" onclick="deleteMeeting()" disabled="disabled">刪除</button>
 
@@ -51,6 +51,10 @@
                     <div class="mb-3">
                         <h5 for="place" class="form-label">地點</h5>
                         <input type="text" class="form-control" id="place" name="place" placeholder="資工系會議室">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="welcomeSpeech" class="form-label">主席致詞</h5>
+					    <textarea class="form-control" id="welcomeSpeech" rows="2" name="welcomeSpeech"></textarea>
                     </div>
                     <div class="mb-3 col-5">
                         <h5>會議種類</h5>
@@ -81,11 +85,45 @@
                         <div style="margin-top: 5px " id="input_extempore">
                         </div>
                     </div>
-                    <div class="mb-3" id="file_area" style="margin-top: 5px">
-                        <h5  class="form-label">已上傳附件表</h5>
-                        <button type="button" class="btn btn-outline-primary">附件1</button>
-                        <button type="button" class="btn btn-outline-primary">附件2</button>
-                        <button type="button" class="btn btn-outline-primary">附件3</button>
+                    <div class="mb-3" style="margin-top: 5px">
+                        <h5 class="">已上傳附件表</h5>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="deleteFileMode">
+                            <label class="form-check-label" for="deleteFileMode">刪除檔案模式</label>
+                        </div>
+                        <div id="file_area">
+                        </div>
+                    </div>
+                    <!-- 右側拉動式畫布(列席人員) -->
+                    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
+                        <div class="offcanvas-header">
+                            <h5 id="offcanvasRightLabel">會議人員設定表</h5>
+                            <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+                        </div>
+                        <div class="offcanvas-body">
+                            <div style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
+                                <h4>出席人員勾選表</h4>
+                                {% for member in memberList %}
+                                    <div class="form-check">
+                                        <input class="form-check-input attendee" type="checkbox" id="attendee{{member[0]}}" value="{{member[0]}}" name="attendee">
+                                        <label class="form-check-label">
+                                            {{member[1]}}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            <div style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
+                                <h4>列席人員勾選表</h4>
+                                {% for member in memberList %}
+                                    <div class="form-check">
+                                        <input class="form-check-input observer" type="checkbox" id="observer{{member[0]}}"  value="{{member[0]}}" name="observer">
+                                        <label class="form-check-label">
+                                            {{member[1]}}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </form>
@@ -94,41 +132,7 @@
 </div>
 
 
-<!-- 右側拉動式畫布(列席人員) -->
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight" aria-labelledby="offcanvasRightLabel">
-    <div class="offcanvas-header">
-        <h5 id="offcanvasRightLabel">列席人員表</h5>
-        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        <div style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" name="p1" id="flexCheckDefault">
-                <label class="form-check-label" for="flexCheckDefault">
-                    人員1
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" name="p2" id="flexCheckChecked">
-                <label class="form-check-label" for="flexCheckChecked">
-                    人員2
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" name="p3" id="member1">
-                <label class="form-check-label" for="member1">
-                    人員3
-                </label>
-            </div>
-            <div class="form-check">
-                <input class="form-check-input" type="checkbox" value="" name="p4" id="member2">
-                <label class="form-check-label" for="member2">
-                    人員4
-                </label>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 
 <!-- 刪除確認視窗 -->
@@ -182,16 +186,13 @@
                 document.getElementById("choice").disabled="";
                 document.getElementById("choice").id="";
             }
-            document.getElementById("input_discussion").innerHTML="";
-            document.getElementById("input_announce").innerHTML="";
-            document.getElementById("input_extempore").innerHTML="";
 			this.id="choice";
             this.classList.add("active");
 			this.disabled="disabled";
+            clearInput()
             if($("#choice").data("id")=="0")
             {
                 document.getElementById("deleteBtn").disabled="disabled";
-                clearInput()
             }
             else
             {
@@ -209,6 +210,7 @@
                             document.getElementById("meetingName").value=data.name;
                             document.getElementById("date").value=data.date;
                             document.getElementById("place").value=data.place;
+                            document.getElementById("welcomeSpeech").value=data.welcomeSpeech;
                             document.getElementById("type")[getMeetingTypeIndex(data.type)].selected=true;
                             if (data.discussionList){
                                 for(var i = 0 ; i < data.discussionList.length ; i++){
@@ -245,6 +247,25 @@
                                     document.getElementById("extemporeResult").id="";
                                 }
                             }
+                            if(data.appendixList){
+                                for(var i = 0; i<data.appendixList.length ; i++){
+                                    $("#file_area").append($("#fileBtn").html())
+                                    $("#newFileBtn").text(data.appendixList[i][1])
+                                    $("#newFileBtn").attr("id",data.appendixList[i][0])
+                                }
+                            }
+                            if(data.attendeeList){
+                                for (var i = 0; i<data.attendeeList.length; i++){
+                                    document.getElementById("attendee"+data.attendeeList[i]).checked=true;
+                                    document.getElementById("observer"+data.attendeeList[i]).disabled=true;
+                                }
+                            }
+                            if(data.observerList){
+                                for (var i = 0; i<data.observerList.length; i++){
+                                    document.getElementById("observer"+data.observerList[i]).checked=true;
+                                    document.getElementById("attendee"+data.observerList[i]).disabled=true;
+                                }
+                            }
                         },
                       contentType: false,
                       processData: false,
@@ -253,6 +274,36 @@
             }
 		});
 
+        function downloadOrDelete(Btn){
+            if(document.getElementById("deleteFileMode").checked = false )
+            {
+                var oForm = jQuery("<form>", {
+                    "action": "{{url_for('getFile')}}",
+                    "method": "post"
+                  }).append(jQuery("<input>", {
+                    "name": "appendixId",
+                    "value": Btn.id,
+                    "type": "hidden"
+                  })).appendTo("body");
+                  oForm.submit();
+            }
+            else
+            {
+                var oForm = jQuery("<form>", {
+                    "action": "{{url_for('deleteFile')}}",
+                    "method": "post"
+                  }).append(jQuery("<input>", {
+                    "name": "appendixId",
+                    "value": Btn.id,
+                    "type": "hidden"
+                  })).appendTo("body");
+                  oForm.submit();
+
+            }
+
+
+
+        }
 
 
 		function create(){
@@ -271,6 +322,24 @@
             document.getElementById("deleteBtn").disabled="disabled";
 		}
 
+        $(".attendee").change(function() {
+            console.log(typeof(this) )
+            if(this.checked === true)
+                document.getElementById("observer"+this.value).disabled=true;
+            else
+                document.getElementById("observer"+this.value).disabled=false;
+
+        });
+
+        $(".observer").change(function() {
+            console.log(typeof(this) )
+            if(this.checked === true)
+                document.getElementById("attendee"+this.value).disabled=true;
+            else
+                document.getElementById("attendee"+this.value).disabled=false;
+
+        });
+
         function clearInput(){
             document.getElementById("input_discussion").innerHTML="";
             document.getElementById("input_announce").innerHTML="";
@@ -280,6 +349,9 @@
             document.getElementById("date").value="";
             document.getElementById("place").value="";
             document.getElementById("type")[0].selected=true;
+            document.getElementById("welcomeSpeech").value="";
+            document.getElementById("file_area").innerHTML="";
+            $(".attendee").prop("checked",false);
         }
 
         function getMeetingTypeIndex(meetingType){
@@ -293,7 +365,6 @@
             return 4;
             else if (meetingType === '系發展委員會')
             return 5;
-
         }
 
         function deleteMeeting(){
@@ -379,6 +450,9 @@
 
 </script>
 
+<script id="fileBtn">
+    <button type="button" className="btn btn-outline-primary" id="newFileBtn" onClick="downloadOrDelete(this)"></button>
+</script>
 
 {% endblock content %}
 

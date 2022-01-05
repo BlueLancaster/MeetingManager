@@ -19,11 +19,19 @@ class Meeting(db.Model):
     extempore = db.relationship('Extempore', backref='meeting', lazy=True, cascade='all, delete-orphan')
     attend = association_proxy('attendanceAssociation', 'member', creator=lambda member: Attend(member=member))
 
-    def __init__(self, name, type, datetime, place):
+    def __init__(self, name, type, datetime, place, welcomeSpeech="略"):
         self.name = name
         self.type = type
         self.datetime = datetime
         self.place = place
+        self.welcomeSpeech = welcomeSpeech
+
+    def set(self, name, type, datetime, place, welcomeSpeech="略"):
+        self.name = name
+        self.type = type
+        self.datetime = datetime
+        self.place = place
+        self.welcomeSpeech = welcomeSpeech
 
 
 '''
@@ -40,6 +48,9 @@ class Announce(db.Model):
     def __init__(self, content):
         self.content = content
 
+    def set(self, content):
+        self.content = content
+
 
 class Discussion(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -49,6 +60,11 @@ class Discussion(db.Model):
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
     def __init__(self, brief, content, result):
+        self.brief = brief
+        self.content = content
+        self.result = result
+
+    def set(self, brief, content, result):
         self.brief = brief
         self.content = content
         self.result = result
@@ -66,10 +82,15 @@ class Extempore(db.Model):
         self.content = content
         self.result = result
 
+    def set(self, brief, content, result):
+        self.brief = brief
+        self.content = content
+        self.result = result
+
 
 class Appendix(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(30),nullable=False)
+    name = db.Column(db.String(30), nullable=False)
     filePath = db.Column(db.String(100), nullable=False)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
@@ -117,16 +138,19 @@ class Attend(db.Model):
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'), primary_key=True)
     memberId = db.Column(db.Integer, db.ForeignKey('member.id'), primary_key=True)
     attendOrNot = db.Column(db.Boolean, default=False)
+    type = db.Column(db.String(10), nullable=False)
     meeting = db.relationship(Meeting, backref=backref('attendanceAssociation', cascade='all, delete-orphan'))
     member = db.relationship(Member, backref=backref('attendanceAssociation', cascade='all, delete-orphan'))
 
-    def __init__(self, meetingId, memberId):
+    def __init__(self, meetingId, memberId, type):
         self.meetingId = meetingId
         self.memberId = memberId
+        self.type = type
 
     def set(self, meetingId, memberId):
         self.meetingId = meetingId
         self.memberId = memberId
+        self.type = type
 
 
 class Assistant(db.Model):
