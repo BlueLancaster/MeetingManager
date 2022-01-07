@@ -1,7 +1,8 @@
+from flask_login import UserMixin
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import backref
 
-from MeetingManager import db
+from MeetingManager import db, login_manager
 
 
 class Meeting(db.Model):
@@ -100,7 +101,7 @@ class Appendix(db.Model):
         self.meetingId = meetingId
 
 
-class Member(db.Model):
+class Member(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(20), nullable=False)
     sex = db.Column(db.String(6), nullable=False)
@@ -108,6 +109,7 @@ class Member(db.Model):
     email = db.Column(db.String(60), nullable=False)
     identity = db.Column(db.String(10), nullable=False)
     password = db.Column(db.String(60), nullable=False)
+    permission = db.Column(db.Boolean, nullable=False)
     assistant = db.relationship('Assistant', backref="personalData", uselist=False, cascade='all, delete-orphan')
     expert = db.relationship('Expert', backref="personalData", uselist=False, cascade='all, delete-orphan')
     student = db.relationship('Student', backref="personalData", uselist=False, cascade='all, delete-orphan')
@@ -117,21 +119,27 @@ class Member(db.Model):
                                         cascade='all, delete-orphan')
     attend = association_proxy('attendanceAssociation', 'meeting', creator=lambda meeting: Attend(meeting=meeting))
 
-    def __init__(self, name, sex, phone, email, identity, password):
+    def __init__(self, name, sex, phone, email, identity, password, permission):
         self.name = name
         self.sex = sex
         self.phone = phone
         self.email = email
         self.identity = identity
         self.password = password
+        self.permission = permission
 
-    def set(self, name, sex, phone, email, identity, password):
+    def set(self, name, sex, phone, email, identity, password, permission):
         self.name = name
         self.sex = sex
         self.phone = phone
         self.email = email
         self.identity = identity
         self.password = password
+        self.permission = permission
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return Member.query.get(user_id)
 
 
 class Attend(db.Model):

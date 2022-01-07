@@ -23,14 +23,15 @@
                     <h2>功能列</h2>
                     <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
                 </div>
-                <div>
+                <div class="container">
                     <h2>與會人員列表</h2>
                     <h5>(打勾代表有出席)</h5>
                 </div>
-                <div id="checkBoxArea" style="border:2px gray dashed; padding:6px; width:500px; background-color:#fafafa;">
-
-
+                <div class="container">
+                    <div id="checkBoxArea" style="border:gray dashed; width:400px; background-color:#fafafa;">
+                    </div>
                 </div>
+
                 <input type="text" style="display: none" class="form-control" id="meetingId" name="meetingId" readonly="readonly">
             </form>
         </div>
@@ -61,14 +62,20 @@
               url:$SCRIPT_ROOT+"/getAbsent",
               data: meetingQuery,
               success:function(data){
-                    for(var i =0 ;i<data.attendeeList.length;i++){
+                  if (data.attendeeList.length!=0){
+                      for(var i =0 ;i<data.attendeeList.length;i++){
                         $("#checkBoxArea").append($("#checkBoxOfAttendee").html());
                         $("#newCheckBox").val(data.attendeeList[i][0]);
                         $("#newCheckBox").prop("checked",data.attendeeList[i][2])
                         $("#newCheckBox").attr("id","")
                         $("#memberName").text(data.attendeeList[i][1]);
                         $("#memberName").attr("id","");
-                    }
+                      }
+                  }
+                  else{
+                      $("#checkBoxArea").append('<h5>此會議尚未設定與會人員</h5>')
+                  }
+
 
                 },
               contentType: false,

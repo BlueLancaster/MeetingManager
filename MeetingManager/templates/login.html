@@ -10,7 +10,7 @@
             <h6>預設密碼為</h6>
         </div>
         <div class="col-6">
-            <form>
+            <form method="post" action="{{url_for('login')}}">
                 <div>
                     <h5 for="email" class="form-label">email</h5>
                     <input type="email" class="form-control" id="email" name="email" placeholder="">

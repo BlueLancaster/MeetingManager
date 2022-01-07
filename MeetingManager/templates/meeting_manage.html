@@ -50,9 +50,23 @@
                         <h5 for="place" class="form-label">地點</h5>
                         <input type="text" class="form-control" id="place" name="place" placeholder="資工系會議室">
                     </div>
-                    <div class="mb-3">
-                        <h5 for="welcomeSpeech" class="form-label">主席致詞</h5>
-					    <textarea class="form-control" id="welcomeSpeech" rows="2" name="welcomeSpeech"></textarea>
+                    <div class="mb-3 col-5">
+                        <h5>主席</h5>
+                        <select class="form-select form-select-lg mb-3" id="chairman" name="chairman" aria-label=".form-select-lg example" required>
+                            <option selected style="display:none">請選擇</option>
+                            {% for member in memberList %}
+                                <option value="{{member[0]}}">{{member[1]}}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3 col-5">
+                        <h5>記錄人</h5>
+                        <select class="form-select form-select-lg mb-3" id="minuteTaker" name="minuteTaker" aria-label=".form-select-lg example" required>
+                            <option selected style="display:none">請選擇</option>
+                            {% for member in memberList %}
+                                <option value="{{member[0]}}">{{member[1]}}</option>
+                            {% endfor %}
+                        </select>
                     </div>
                     <div class="mb-3 col-5">
                         <h5>會議種類</h5>
@@ -65,7 +79,10 @@
                             <option value="系發展委員會">系發展委員會</option>
                         </select>
                     </div>
-
+                    <div class="mb-3">
+                        <h5 for="welcomeSpeech" class="form-label">主席致詞</h5>
+					    <textarea class="form-control" id="welcomeSpeech" rows="2" name="welcomeSpeech"></textarea>
+                    </div>
                     <div style="margin-top: 5px">
                         <button type="button" id="add_discussion" class="btn btn-primary">新增討論事項</button>
                         <div style="margin-top: 5px " id="input_discussion">
@@ -87,7 +104,7 @@
                         <h5 class="">已上傳附件表</h5>
                         <div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" role="switch" id="deleteFileMode">
-                            <label class="form-check-label" for="deleteFileMode">刪除檔案模式</label>
+                            <label class="form-check-label" id="deleteFileModeDescription" for="deleteFileMode">刪除檔案模式:關(點擊下載檔案)</label>
                         </div>
                         <div id="file_area">
                         </div>
@@ -208,6 +225,8 @@
                             document.getElementById("place").value=data.place;
                             document.getElementById("welcomeSpeech").value=data.welcomeSpeech;
                             document.getElementById("type")[getMeetingTypeIndex(data.type)].selected=true;
+                            document.getElementById("chairman")[data.chairman].selected=true;
+                            document.getElementById("minuteTaker")[data.minuteTaker].selected=true;
                             if (data.discussionList){
                                 for(var i = 0 ; i < data.discussionList.length ; i++){
                                     $(input_discussion).append($("#discussionBlock").html())
@@ -244,18 +263,24 @@
                                 }
                             }
                             if(data.appendixList){
+                                $("#deleteFileMode").attr("disabled",false);
                                 for(var i = 0; i<data.appendixList.length ; i++){
                                     $("#file_area").append($("#fileBtn").html())
                                     $("#newFileBtn").text(data.appendixList[i][1])
                                     $("#newFileBtn").attr("id",data.appendixList[i][0])
                                 }
                             }
+                            else{
+                                $("#deleteFileMode").attr("disabled",true);
+                            }
+
                             if(data.attendeeList){
                                 for (var i = 0; i<data.attendeeList.length; i++){
                                     document.getElementById("attendee"+data.attendeeList[i]).checked=true;
                                     document.getElementById("observer"+data.attendeeList[i]).disabled=true;
                                 }
                             }
+
                             if(data.observerList){
                                 for (var i = 0; i<data.observerList.length; i++){
                                     document.getElementById("observer"+data.observerList[i]).checked=true;
@@ -336,6 +361,13 @@
 
         });
 
+        $("#deleteFileMode").change(function (){
+           if(this.checked === true)
+               document.getElementById("deleteFileModeDescription").innerText="刪除檔案模式:開(點擊刪除檔案)";
+           else
+               document.getElementById("deleteFileModeDescription").innerText="刪除檔案模式:關(點擊下載檔案)";
+        });
+
         function clearInput(){
             document.getElementById("input_discussion").innerHTML="";
             document.getElementById("input_announce").innerHTML="";
@@ -347,7 +379,10 @@
             document.getElementById("type")[0].selected=true;
             document.getElementById("welcomeSpeech").value="";
             document.getElementById("file_area").innerHTML="";
+            document.getElementById("chairman")[0].selected=true;
+            document.getElementById("minuteTaker")[0].selected=true;
             $(".attendee").prop("checked",false);
+            $(".observer").prop("checked",false);
         }
 
         function getMeetingTypeIndex(meetingType){

@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template, url_for, jsonify, request, redirect, send_from_directory
+from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
 from MeetingManager import app, db
@@ -40,9 +41,23 @@ def absent():
     return render_template('absent.html', meetingList=meetingList)
 
 
-@app.route("/login")
+@app.route("/login", methods=['GET', 'POST'])
 def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    if request.values.get("email"):
+        user = Member.query.filter_by(email=request.values.get("email")).first()
+        if user:
+            login_user(user)
+            print('login successes')
+            return redirect(url_for('home'))
     return render_template('login.html')
+
+
+@app.route("/logout")
+def logout():
+    logout_user()
+    return redirect(url_for('home'))
 
 
 # ajax請求會議資料
@@ -64,7 +79,7 @@ def getMeetingMinutes():
         observerList.append(observer[0])
     return jsonify(
         {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
-         'type': meeting.type, 'welcomeSpeech': meeting.welcomeSpeech,
+         'type': meeting.type, 'chairman': meeting.chairman, 'minuteTaker': meeting.minuteTaker, 'welcomeSpeech': meeting.welcomeSpeech,
          'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList,
          'appendixList': appendixList, 'attendeeList': attendeeList, 'observerList': observerList})
 
@@ -76,7 +91,7 @@ def getMemberData():
     member = Member.query.filter_by(id=memberId).first()
     data = {'id': member.id, 'name': member.name, 'identity': member.identity, 'sex': member.sex, 'phone': member.phone,
             'email': member.email,
-            'password': member.password}
+            'password': member.password, 'permission': member.permission}
     if member.identity == '系上老師':
         data['rank'] = member.intramuralTeacher.rank
         data['officePhone'] = member.intramuralTeacher.officePhone
@@ -139,6 +154,8 @@ def submitMeetingMinutes():
     if meeting is None:
         newMeeting = Meeting(data.get('name'), data.get('type'), data.get('date'), data.get('place'),
                              data.get('welcomeSpeech'))
+        newMeeting.chairman = data.get("chairman")
+        newMeeting.minuteTaker = data.get("minuteTaker")
         if discussionBriefList:
             for i in range(len(discussionBriefList)):
                 discussion = Discussion(discussionBriefList[i], discussionContentList[i], discussionResultList[i])
@@ -157,6 +174,8 @@ def submitMeetingMinutes():
                 meeting = newMeeting
     else:
         meeting.set(data.get('name'), data.get('type'), data.get('date'), data.get('place'), data.get('welcomeSpeech'))
+        meeting.chairman = data.get('chairman')
+        meeting.minuteTaker = data.get('minuteTaker')
         if discussionBriefList:
             for i in range(len(discussionIdList)):
                 if discussionIdList[i] == '0':
@@ -211,7 +230,7 @@ def submitMemberData():
     if member is None:
         newMember = Member(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'),
                            data.get('identity'),
-                           data.get('password'))
+                           data.get('password'), eval(data.get("permission")))
         if identity == '系上老師':
             moreInfo = IntramuralTeacher(data.get('rank'), data.get('officePhone'))
             newMember.intramuralTeacher = moreInfo
@@ -285,7 +304,7 @@ def submitMemberData():
                 member.student = moreInfo
                 db.session.add(moreInfo)
         member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
-                   data.get('password'))
+                   data.get('password'), eval(data.get("permission")))
 
     db.session.commit()
     return redirect(url_for('memberManage'))
