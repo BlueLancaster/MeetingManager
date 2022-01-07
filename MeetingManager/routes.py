@@ -17,26 +17,59 @@ def home():
 
 
 @app.route("/meetingManage")
+@login_required
 def meetingManage():
+    if not current_user.permission:
+        return redirect(url_for('meeting'))
     memberList = Member.query.with_entities(Member.id, Member.name).all()
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template("meeting_manage.html", meetingList=meetingList, memberList=memberList)
 
 
+@app.route("/meeting")
+@login_required
+def meeting():
+    if current_user.permission:
+        return redirect(url_for('meetingManage'))
+    tempList = Attend.query.filter_by(memberId=current_user.id).all()
+    resultList = []
+    for element in tempList:
+        resultList.append([element.meeting.id, element.meeting.name])
+    return render_template("meeting.html", meetingList=resultList)
+
+
 @app.route("/memberManage")
+@login_required
 def memberManage():
+    if not current_user.permission:
+        return redirect(url_for('member'))
     memberList = Member.query.with_entities(Member.id, Member.name).all()
     return render_template("member_manage.html", memberList=memberList)
 
 
+@app.route("/member")
+@login_required
+def member():
+    if current_user.permission:
+        return redirect(url_for('memberManage'))
+    memberData = Member.query.filter_by(id=current_user.id).first()
+    return render_template("member.html", member=memberData)
+
+
 @app.route("/fileManage")
+@login_required
 def fileManage():
+    if not current_user.permission:
+        return redirect(url_for('home'))
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template('file_manage.html', meetingList=meetingList)
 
 
 @app.route("/absent")
+@login_required
 def absent():
+    if not current_user.permission:
+        return redirect(url_for('home'))
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template('absent.html', meetingList=meetingList)
 
@@ -45,9 +78,9 @@ def absent():
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
-    if request.values.get("email"):
+    if request.values.get("email") and request.values.get("password"):
         user = Member.query.filter_by(email=request.values.get("email")).first()
-        if user:
+        if user and user.password == request.values.get("password"):
             login_user(user)
             print('login successes')
             return redirect(url_for('home'))
@@ -62,6 +95,7 @@ def logout():
 
 # ajax請求會議資料
 @app.route("/getMeetingMinutes", methods=["GET", 'POST'])
+@login_required
 def getMeetingMinutes():
     meetingId = request.form.get('meetingId')
     meeting = Meeting.query.filter_by(id=meetingId).first()
@@ -77,15 +111,28 @@ def getMeetingMinutes():
         attendeeList.append(attendee[0])
     for observer in tempList2:
         observerList.append(observer[0])
-    return jsonify(
-        {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
-         'type': meeting.type, 'chairman': meeting.chairman, 'minuteTaker': meeting.minuteTaker, 'welcomeSpeech': meeting.welcomeSpeech,
-         'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList,
-         'appendixList': appendixList, 'attendeeList': attendeeList, 'observerList': observerList})
+
+    if current_user.permission:
+        return jsonify(
+            {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
+             'type': meeting.type, 'chairman': meeting.chairman, 'minuteTaker': meeting.minuteTaker,
+             'welcomeSpeech': meeting.welcomeSpeech,
+             'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList,
+             'appendixList': appendixList, 'attendeeList': attendeeList, 'observerList': observerList})
+    else:
+        chairmanName = Member.query.filter_by(id=meeting.chairman).first().name
+        minuteTakerName = Member.query.filter_by(id=meeting.minuteTaker).first().name
+        return jsonify(
+            {'id': meeting.id, 'name': meeting.name, 'date': meeting.datetime, 'place': meeting.place,
+             'type': meeting.type, 'chairman': chairmanName, 'minuteTaker': minuteTakerName,
+             'welcomeSpeech': meeting.welcomeSpeech,
+             'discussionList': discussionList, 'announceList': announceList, 'extemporeList': extemporeList,
+             'appendixList': appendixList, 'attendeeList': attendeeList, 'observerList': observerList})
 
 
 # ajax請求人員資料
 @app.route("/getMemberData", methods=['POST'])
+@login_required
 def getMemberData():
     memberId = request.values.get('memberId')
     member = Member.query.filter_by(id=memberId).first()
@@ -223,10 +270,13 @@ def submitMeetingMinutes():
 
 # 接收人員資料表單 Member('mouse','男','0645462','b5645@xuite.net','校外老師','00000')
 @app.route("/submitMemberData", methods=['POST'])
+@login_required
 def submitMemberData():
     data = request.values
     identity = data.get('identity')
     member = Member.query.filter_by(id=data.get('id')).first()
+    if not current_user.permission:
+        member = Member.query.filter_by(id=current_user.id).first()
     if member is None:
         newMember = Member(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'),
                            data.get('identity'),
@@ -303,11 +353,17 @@ def submitMemberData():
                 moreInfo = Student(data.get('studentId'), data.get('ESystem'), eval(data.get('grade')))
                 member.student = moreInfo
                 db.session.add(moreInfo)
-        member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
-                   data.get('password'), eval(data.get("permission")))
-
+        if not current_user.permission:
+            member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
+                       data.get('password'), False)
+        else:
+            member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
+                       data.get('password'), eval(data.get("permission")))
     db.session.commit()
-    return redirect(url_for('memberManage'))
+    if not current_user.permission:
+        return redirect(url_for('member'))
+    else:
+        return redirect(url_for('memberManage'))
 
 
 @app.route("/submitFile", methods=['POST'])

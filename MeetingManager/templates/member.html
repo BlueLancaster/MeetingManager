@@ -1,0 +1,191 @@
+{% extends "template.html" %}
+{% block title %}
+<h2>個人資料</h2>
+{% endblock title %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="container" id="inputArea">
+            <form method="post" action="{{url_for('submitMemberData')}}">
+                <div>
+                    <h2>功能列</h2>
+                    <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
+                </div>
+                <div style="margin-top:5px">
+
+                    <div class="mb-3">
+                        <h5 for="name" class="form-label" required>姓名</h5>
+                        <input class="form-control" id="name" name="name" value="{{member.name}}">
+                    </div>
+                    <div class="mb-3">
+                        <h5>身分</h5>
+                        <input class="form-control" style="width: 100px" id="identity" name="identity" value="{{member.identity}}" readonly="readonly">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="sex" class="form-label">性別</h5>
+                        <input class="form-control" style="width: 100px" id="sex" name="sex" value="{{member.sex}}" readonly="readonly">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="phone" class="form-label" required>手機</h5>
+                        <input type="tel" class="form-control" id="phone" name="phone" maxlength="10" value="{{member.phone}}">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="email" class="form-label" required>email</h5>
+                        <input type="email" class="form-control" id="email" name="email" value="{{member.email}}">
+                    </div>
+                    <div class="mb-3">
+                        <h5 for="text" class="form-label" required>密碼</h5>
+                        <input type="text" class="form-control" id="password" name="password" value="{{member.password}}">
+                    </div>
+                    <div id="moreInfo">
+                        {% if member.identity == "系上老師"  %}
+                            <div class="mb-3 col-4">
+                                <h5>職級</h5>
+                                <input type="text" class="form-control" name="rank" value="{{member.intramuralTeacher.rank}}">
+                            </div>
+                            <div class="mb-3">
+                                <h5 for="officePhone" class="form-label">辦公室電話</h5>
+                                <input class="form-control" name="officePhone" value="{{member.intramuralTeacher.officePhone}}">
+                            </div>
+                        {% elif member.identity == "系助理" %}
+                            <div class="mb-3">
+                                <h5 for="officePhone" class="form-label">辦公室電話</h5>
+                                <input class="form-control" name="officePhone" value="{{member.assistant.officePhone}}">
+                            </div>
+                        {% elif member.identity == "校外老師" %}
+                                <div class="mb-3">
+                                    <h5 for="school" class="form-label">任職學校</h5>
+                                    <input class="form-control" name="school" value="{{member.externalTeacher.school}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="department" class="form-label">系所</h5>
+                                    <input class="form-control" name="department" value="{{member.externalTeacher.department}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="title" class="form-label">職稱</h5>
+                                    <input class="form-control" name="title" value="{{member.externalTeacher.title}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="officePhone" class="form-label">辦公室電話</h5>
+                                    <input class="form-control" name="officePhone" value="{{member.externalTeacher.officePhone}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="address" class="form-label">聯絡地址</h5>
+                                    <input class="form-control" name="address" value="{{member.externalTeacher.address}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="bankAccount" class="form-label">銀行(郵局帳號)</h5>
+                                    <input class="form-control" name="bankAccount" value="{{member.externalTeacher.bankAccount}}">
+                                </div>
+                        {% elif member.identity == "業界專家" %}
+                                <div class="mb-3">
+                                    <h5 for="company" class="form-label">任職公司</h5>
+                                    <input class="form-control" name="companyName" value="{{member.expert.companyName}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="title" class="form-label">職稱</h5>
+                                    <input class="form-control" name="title" value="{{member.expert.title}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="officePhone" class="form-label">辦公室電話</h5>
+                                    <input class="form-control" name="officePhone" value="{{member.expert.officePhone}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="address" class="form-label">聯絡地址</h5>
+                                    <input class="form-control" name="address" value="{{member.expert.address}}">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="bankAccount" class="form-label">銀行(郵局帳號)</h5>
+                                    <input class="form-control" name="bankAccount" value="{{member.expert.bankAccount}}">
+                                </div>
+                        {% elif member.identity == "學生代表" %}
+                                <div class="mb-3">
+                                    <h5 for="ID" class="form-label">學號</h5>
+                                    <input class="form-control" name="studentId" value="{{member.student.studentId}}">
+                                </div>
+                                <div class="mb-3 col-4">
+                                    <h5>學制</h5>
+                                    <input class="form-control" name="ESystem" value="{{member.student.ESystem}}" readonly="readonly">
+                                </div>
+                                <div class="mb-3">
+                                    <h5 for="grade" class="form-label">年級</h5>
+                                    <input class="form-control" name="grade" value="{{member.student.grade}}" readonly="readonly">
+                                </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<script type="text/javascript">
+    function setMoreInfo(){
+        if (Data.identity === "系上老師") {
+            $(moreInfo).empty();
+            $(moreInfo).append($(pr).html());
+            document.getElementById("rank")[getRankIndex(Data.rank)].selected=true;
+            document.getElementById("officePhone").value=Data.officePhone;
+        } else if (Data.identity === "系助理") {
+            $(moreInfo).empty();
+            $(moreInfo).append($(assistant).html());
+            document.getElementById("officePhone").value=Data.officePhone;
+        } else if (Data.identity === "校外老師") {
+            $(moreInfo).empty();
+            $(moreInfo).append($(teacher).html());
+            document.getElementById("school").value=Data.school;
+            document.getElementById("department").value=Data.department;
+            document.getElementById("title").value=Data.title;
+            document.getElementById("officePhone").value=Data.officePhone;
+            document.getElementById("address").value=Data.address;
+            document.getElementById("bankAccount").value=Data.bankAccount;
+        } else if (Data.identity === "業界專家") {
+            $(moreInfo).empty();
+            $(moreInfo).append($(expert).html());
+            document.getElementById("companyName").value=Data.companyName;
+            document.getElementById("title").value=Data.title;
+            document.getElementById("officePhone").value=Data.officePhone;
+            document.getElementById("address").value=Data.address;
+            document.getElementById("bankAccount").value=Data.bankAccount;
+        } else if (Data.identity === "學生代表") {
+            $(moreInfo).empty();
+            $(moreInfo).append($(student).html());
+            document.getElementById("studentId").value=Data.studentId;
+            document.getElementById("ESystem")[getESystem(Data.ESystem)].selected=true;
+            document.getElementById("grade")[Data.grade].selected=true;
+        }
+    }
+
+</script>
+
+
+<script id="student">
+    <div class="mb-3">
+        <h5 for="ID" class="form-label">學號</h5>
+        <input class="form-control" id="studentId" name="studentId" placeholder="">
+    </div>
+    <div class="mb-3 col-4">
+        <h5>學制</h5>
+        <select class="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id="ESystem"
+                name="ESystem">
+            <option selected style="display:none">請選擇</option>
+            <option value="大學部">大學部</option>
+            <option value="研究所">研究所</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <h5 for="grade" class="form-label">年級</h5>
+        <select className="form-select form-select-lg mb-3" aria-label=".form-select-lg example" id="grade"
+                name="grade">
+            <option selected style="display:none">請選擇</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
+    </div>
+</script>
+
+
+{% endblock content %}
