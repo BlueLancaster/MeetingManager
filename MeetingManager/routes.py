@@ -218,7 +218,14 @@ def submitMeetingMinutes():
                 extempore = Extempore(extemporeBriefList[i], extemporeContentList[i], extemporeResultList[i])
                 newMeeting.extempore.append(extempore)
                 db.session.add(extempore)
-                meeting = newMeeting
+        if not attendeeList:
+            for attendeeId in attendeeList:
+                newMeeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+        if not observerList:
+            for observerId in observerList:
+                newMeeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
+        db.session.add(newMeeting)
+        db.session.commit()
     else:
         meeting.set(data.get('name'), data.get('type'), data.get('date'), data.get('place'), data.get('welcomeSpeech'))
         meeting.chairman = data.get('chairman')
@@ -256,14 +263,13 @@ def submitMeetingMinutes():
                     extempore.result = extemporeResultList[i]
         for attendee in meeting.attendanceAssociation:
             db.session.delete(attendee)
+        if not attendeeList:
+            for attendeeId in attendeeList:
+                meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+        if not observerList:
+            for observerId in observerList:
+                meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
         db.session.commit()
-
-    for attendeeId in attendeeList:
-        meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
-    for observerId in observerList:
-        meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
-    db.session.add(meeting)
-    db.session.commit()
 
     return redirect(url_for('meetingManage'))
 
