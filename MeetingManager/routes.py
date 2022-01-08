@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, url_for, jsonify, request, redirect, send_from_directory
+from flask import Flask, render_template, url_for, jsonify, request, redirect, send_from_directory, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
@@ -82,7 +82,7 @@ def login():
         user = Member.query.filter_by(email=request.values.get("email")).first()
         if user and user.password == request.values.get("password"):
             login_user(user)
-            print('login successes')
+            flash('登入成功', 'success')
             return redirect(url_for('home'))
     return render_template('login.html')
 
@@ -99,10 +99,10 @@ def logout():
 def getMeetingMinutes():
     meetingId = request.form.get('meetingId')
     meeting = Meeting.query.filter_by(id=meetingId).first()
-    discussionList = ModelToList(Discussion.query.filter_by(meetingId=meeting.id))
-    announceList = ModelToList(Announce.query.filter_by(meetingId=meeting.id))
-    extemporeList = ModelToList(Extempore.query.filter_by(meetingId=meeting.id))
-    appendixList = ModelToList(Appendix.query.filter_by(meetingId=meeting.id))
+    discussionList = modelToList(Discussion.query.filter_by(meetingId=meeting.id))
+    announceList = modelToList(Announce.query.filter_by(meetingId=meeting.id))
+    extemporeList = modelToList(Extempore.query.filter_by(meetingId=meeting.id))
+    appendixList = modelToList(Appendix.query.filter_by(meetingId=meeting.id))
     tempList1 = Attend.query.filter_by(meetingId=meetingId, type='出席').with_entities(Attend.memberId).all()
     tempList2 = Attend.query.filter_by(meetingId=meetingId, type='列席').with_entities(Attend.memberId).all()
     attendeeList = []
@@ -185,6 +185,7 @@ def getAbsent():
 @app.route("/submitMeetingMinutes", methods=['POST'])
 def submitMeetingMinutes():
     data = request.values
+    # 傳入str型態變數
     discussionIdList = request.form.getlist('discussionId')
     discussionBriefList = request.form.getlist('discussionName')
     discussionContentList = request.form.getlist('discussionContent')
@@ -218,18 +219,25 @@ def submitMeetingMinutes():
                 extempore = Extempore(extemporeBriefList[i], extemporeContentList[i], extemporeResultList[i])
                 newMeeting.extempore.append(extempore)
                 db.session.add(extempore)
-        if not attendeeList:
-            for attendeeId in attendeeList:
-                newMeeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
-        if not observerList:
-            for observerId in observerList:
-                newMeeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
+        for attendeeId in attendeeList:
+            newMeeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+        for observerId in observerList:
+            newMeeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
         db.session.add(newMeeting)
         db.session.commit()
     else:
         meeting.set(data.get('name'), data.get('type'), data.get('date'), data.get('place'), data.get('welcomeSpeech'))
         meeting.chairman = data.get('chairman')
         meeting.minuteTaker = data.get('minuteTaker')
+        oldDiscussionList = getModelIdList(Discussion.query.filter_by(meetingId=meeting.id).all())
+        oldAnnounceList = getModelIdList(Announce.query.filter_by(meetingId=meeting.id).all())
+        oldExtemporeList = getModelIdList(Extempore.query.filter_by(meetingId=meeting.id).all())
+        if oldDiscussionList:
+            for id in oldDiscussionList:
+                if id not in discussionIdList:
+                    temp = Discussion.query.filter_by(id=id).first()
+                    db.session.delete(temp)
+                    oldDiscussionList.remove(id)
         if discussionBriefList:
             for i in range(len(discussionIdList)):
                 if discussionIdList[i] == '0':
@@ -241,6 +249,12 @@ def submitMeetingMinutes():
                     discussion.brief = discussionBriefList[i]
                     discussion.content = discussionContentList[i]
                     discussion.result = discussionResultList[i]
+        if oldAnnounceList:
+            for id in oldAnnounceList:
+                if id not in announceIdList:
+                    temp = Announce.query.filter_by(id=id).first()
+                    db.session.delete(temp)
+                    oldAnnounceList.remove(id)
         if announceContentList:
             for i in range(len(announceIdList)):
                 if announceIdList[i] == '0':
@@ -250,6 +264,12 @@ def submitMeetingMinutes():
                 else:
                     announce = Announce.query.filter_by(id=announceIdList[i]).first()
                     announce.content = announceContentList[i]
+        if oldExtemporeList:
+            for id in oldExtemporeList:
+                if id not in extemporeIdList:
+                    temp = Extempore.query.filter_by(id=id).first()
+                    db.session.delete(temp)
+                    oldExtemporeList.remove(id)
         if extemporeBriefList:
             for i in range(len(extemporeIdList)):
                 if extemporeIdList[i] == '0':
@@ -262,15 +282,21 @@ def submitMeetingMinutes():
                     extempore.content = extemporeContentList[i]
                     extempore.result = extemporeResultList[i]
         for attendee in meeting.attendanceAssociation:
-            db.session.delete(attendee)
-        if not attendeeList:
-            for attendeeId in attendeeList:
-                meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
-        if not observerList:
-            for observerId in observerList:
-                meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
-        db.session.commit()
+            if str(attendee.memberId) in attendeeList:
+                attendee.type = "出席"
+                attendeeList.remove(str(attendee.memberId))
+            elif str(attendee.memberId) in observerList:
+                attendee.type = "列席"
+                observerList.remove(str(attendee.memberId))
+            else:
+                db.session.delete(attendee)
 
+        for attendeeId in attendeeList:
+            meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+        for observerId in observerList:
+            meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
+        db.session.commit()
+    flash('儲存成功', 'success')
     return redirect(url_for('meetingManage'))
 
 
@@ -366,6 +392,7 @@ def submitMemberData():
             member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
                        data.get('password'), eval(data.get("permission")))
     db.session.commit()
+    flash('儲存成功', 'success')
     if not current_user.permission:
         return redirect(url_for('member'))
     else:
@@ -382,6 +409,7 @@ def submitFile():
         appendix = Appendix(request.values.get('name'), filePath, eval(request.values.get('belongingMeeting')))
         db.session.add(appendix)
         db.session.commit()
+    flash('儲存成功', 'success')
     return redirect(url_for('fileManage'))
 
 
@@ -403,6 +431,7 @@ def submitAbsent():
             else:
                 attendee.attendOrNot = 0
     db.session.commit()
+    flash('儲存成功', 'success')
     return redirect(url_for('absent'))
 
 
@@ -431,20 +460,20 @@ def deleteFile():
     return redirect(url_for('meetingManage'))
 
 
-def ModelToList(ModelList):
-    if not ModelList.all():
+def modelToList(modelList):
+    if not modelList.all():
         return None
     resultList = []
-    if isinstance(ModelList[0], Discussion) or isinstance(ModelList[0], Extempore):
-        for discussion in ModelList:
+    if isinstance(modelList[0], Discussion) or isinstance(modelList[0], Extempore):
+        for discussion in modelList:
             resultList.append([discussion.id, discussion.brief, discussion.content, discussion.result])
         return resultList
-    elif isinstance(ModelList[0], Announce):
-        for announce in ModelList:
+    elif isinstance(modelList[0], Announce):
+        for announce in modelList:
             resultList.append([announce.id, announce.content])
         return resultList
-    elif isinstance(ModelList[0], Appendix):
-        for appendix in ModelList:
+    elif isinstance(modelList[0], Appendix):
+        for appendix in modelList:
             resultList.append([appendix.id, appendix.name])
         return resultList
 
@@ -452,3 +481,12 @@ def ModelToList(ModelList):
 def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
+
+
+def getModelIdList(modelList):
+    if not modelList:
+        return None
+    resultList = []
+    for model in modelList:
+        resultList.append(str(model.id))
+    return resultList

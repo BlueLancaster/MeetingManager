@@ -102,3 +102,14 @@ input:checked ~ .menu {
 .textarea{
     overflow: auto;
 }
+
+.closeBtn{
+  display: inline;
+  min-width: 40px;
+  min-height: 30px;
+  font-size: 24px;
+  float:right;
+  border:0px;
+  border-radius:10px;
+  background-color: #FFFFFF;
+}

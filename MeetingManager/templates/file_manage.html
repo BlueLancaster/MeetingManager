@@ -37,10 +37,21 @@
     </div>
 </div>
 
+{% with messages  = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+        $(document).ready(function (){
+                toastr['success']('成功儲存附件', '成功');
+        });
+    </script>
+    {%endif%}
+{% endwith %}
+
 <script>
     function enableSubmit(){
         document.getElementById("submitBtn").disabled="";
     }
+
 </script>
 {% endblock content %}
 

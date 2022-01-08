@@ -106,6 +106,19 @@
 </div>
 
 
+{% with messages  = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+        $(document).ready(function (){
+                toastr['success']('成功儲存一筆人員資料', '成功');
+        });
+    </script>
+    {%endif%}
+{% endwith %}
+
+
+
+
 <script type="text/javascript">
     function roleChange(select) {
         if (select.value === "系上老師") {

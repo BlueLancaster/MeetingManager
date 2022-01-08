@@ -102,9 +102,18 @@
 </div>
 
 
+{% with messages  = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+        $(document).ready(function (){
+                toastr['success']('成功儲存個人資料', '成功');
+        });
+    </script>
+    {%endif%}
+{% endwith %}
+
 
 <script type="text/javascript">
-
     $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
     $(meetingList).on('click', '.meetingBtn', function(e){
         e.preventDefault();
@@ -232,15 +241,15 @@
                 </div>
 				<h5 for="discussionName" class="form-label">案由</h5>
 				<div style="margin:10px">
-					<textarea class="form-control" id="discussionName" rows="2" name="discussionName" required></textarea>
+					<textarea class="form-control" id="discussionName" rows="2" name="discussionName" readOnly="readonly"></textarea>
 				</div>
 				<h5 for="discussionContent" class="form-label">說明</h5>
 				<div style="margin:10px;border-radius:10px;">
-					<textarea class="form-control" id="discussionContent" rows="3" name="discussionContent" required></textarea>
+					<textarea class="form-control" id="discussionContent" rows="3" name="discussionContent" readOnly="readonly"></textarea>
 				</div>
 				<h5 for="discussionResult" class="form-label" >決議</h5>
 				<div style="margin:10px;border-radius:10px;">
-					<textarea class="form-control" id="discussionResult" rows="2" name="discussionResult" ></textarea>
+					<textarea class="form-control" id="discussionResult" rows="2" name="discussionResult" readOnly="readonly"></textarea>
 				</div>
 			</div>
 		</div>
@@ -258,7 +267,7 @@
                 </div>
                 <h5 for="announceContent" class="form-label">說明</h5>
 				<div style="margin:10px;border-radius:10px;">
-					<textarea class="form-control" id="announceContent" rows="3" name="announceContent" required></textarea>
+					<textarea class="form-control" id="announceContent" rows="3" name="announceContent" readOnly="readonly"></textarea>
 				</div>
 			</div>
 		</div>
@@ -275,15 +284,15 @@
                 </div>
 				<h5 for="extemporeName" class="form-label">案由</h5>
 				<div style="margin:10px">
-					<textarea class="form-control" id="extemporeName" rows="2" name="extemporeName" required></textarea>
+					<textarea class="form-control" id="extemporeName" rows="2" name="extemporeName" readOnly="readonly"></textarea>
 				</div>
 				<h5 for="extemporeContent" class="form-label">說明</h5>
 				<div style="margin:10px;border-radius:10px;">
-					<textarea class="form-control" id="extemporeContent" rows="3" name="extemporeContent" required></textarea>
+					<textarea class="form-control" id="extemporeContent" rows="3" name="extemporeContent" readOnly="readonly"></textarea>
 				</div>
 				<h5 for="extemporeResult" class="form-label">決議</h5>
 				<div style="margin:10px;border-radius:10px;">
-					<textarea class="form-control" id="extemporeResult" rows="2" name="extemporeResult" ></textarea>
+					<textarea class="form-control" id="extemporeResult" rows="2" name="extemporeResult" readOnly="readonly"></textarea>
 				</div>
 			</div>
 		</div>

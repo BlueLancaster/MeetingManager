@@ -9,6 +9,17 @@
     </div>
 </div>
 
+
+{% with messages  = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <script>
+        $(document).ready(function (){
+            toastr['success']('歡迎回來，{{current_user.name}}', '成功');
+        });
+    </script>
+    {%endif%}
+{% endwith %}
+
 {% endblock content %}
 
   
