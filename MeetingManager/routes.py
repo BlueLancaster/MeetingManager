@@ -1,9 +1,11 @@
 import os
-from flask import Flask, render_template, url_for, jsonify, request, redirect, send_from_directory, flash
+import time
+
+from flask import render_template, url_for, jsonify, request, redirect, send_from_directory, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 
-from MeetingManager import app, db
+from MeetingManager import app
 from MeetingManager.models import *
 
 UPLOAD_FOLDER = os.path.abspath(os.getcwd()) + '\\MeetingManager\\static\\files'
@@ -14,6 +16,19 @@ ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg'}
 @app.route("/home")
 def home():
     return render_template("home.html")
+
+
+@app.route("/notification")
+@login_required
+def notification():
+    localtime = time.strftime('%Y-%m-%d', time.localtime())
+    upcomingMeeting = Meeting.query.order_by(Meeting.datetime).all()
+    resultList = []
+    for meeting in upcomingMeeting:
+        if meeting.datetime > localtime:
+            datetime = meeting.datetime.split('T', 1)
+            resultList.append([meeting.name, datetime[0], datetime[1], meeting.place,meeting.id])
+    return render_template("notification.html", meetingList=resultList)
 
 
 @app.route("/meetingManage")

@@ -1,0 +1,37 @@
+{% extends "template.html" %}
+{% block title %}
+<h2>通知</h2>
+{% endblock title %}
+{% block content %}
+<div class="container">
+    <div class="row">
+        {% for meeting in meetingList %}
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <h4 style="display: inline;">會議名稱</h4>
+            <button class="btn btn-info collapseBtn" style="display: inline;height: 35px;border-width: 0px;line-height: 15px;" type="button" data-bs-toggle="collapse" data-bs-target="#meeting{{meeting[4]}}" aria-expanded="true" aria-controls="meeting{{meeting[4]}}">+</button>
+            <p>{{meeting[0]}}</p>
+            <div class="collapse" id="meeting{{meeting[4]}}">
+                <h4>日期</h4>
+                <p>{{meeting[1]}}</p>
+                <h4>時間</h4>
+                <p>{{meeting[2]}}</p>
+                <h4>地點</h4>
+                <p>{{meeting[3]}}</p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+
+<script>
+    $(".collapseBtn").click(function (){
+        console.log($(this).text())
+        if ($(this).text()==="+")
+            $(this).text("-");
+        else
+            $(this).text("+");
+    });
+</script>
+
+{% endblock content %}
