@@ -155,7 +155,7 @@ class Attend(db.Model):
         self.memberId = memberId
         self.type = type
 
-    def set(self, meetingId, memberId):
+    def set(self, meetingId, memberId, type):
         self.meetingId = meetingId
         self.memberId = memberId
         self.type = type

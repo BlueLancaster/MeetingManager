@@ -1,6 +1,9 @@
 import os
 import time
+import smtplib
+import email.message
 
+import flask
 from flask import render_template, url_for, jsonify, request, redirect, send_from_directory, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
@@ -27,7 +30,7 @@ def notification():
     for meeting in upcomingMeeting:
         if meeting.datetime > localtime:
             datetime = meeting.datetime.split('T', 1)
-            resultList.append([meeting.name, datetime[0], datetime[1], meeting.place,meeting.id])
+            resultList.append([meeting.name, datetime[0], datetime[1], meeting.place, meeting.id])
     return render_template("notification.html", meetingList=resultList)
 
 
@@ -448,6 +451,29 @@ def submitAbsent():
     db.session.commit()
     flash('儲存成功', 'success')
     return redirect(url_for('absent'))
+
+
+@app.route("/sendMeetingNotice", methods=['POST'])
+def sendMeetingNotice():
+    meetingId = request.values.get('meetingId')
+    receiverList = []
+    attendeeList = Attend.query.filter_by(meetingId=meetingId).all()
+    if not attendeeList:
+        return jsonify({'title': '失敗', 'type': 'warning', 'result': '請先設定與會人員，並先儲存到資料庫'})
+    for attendee in attendeeList:
+        receiverList.append(attendee.member.email)
+    senderMail = 'bluenuk112@gmail.com'
+    senderPassword = 'AaBb0000'
+    msg = email.message.EmailMessage()
+    msg['From'] = senderMail
+    msg['Subject'] = '開會通知'
+    msg.add_alternative('第一次會議在2020/1/1舉行')
+    sever = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+    sever.login(senderMail, senderPassword)
+    msg['To'] = ', '.join(receiverList)
+    sever.send_message(msg)
+    sever.close()
+    return jsonify({'title': '成功', 'type': 'success', 'result': '成功送出通知'})
 
 
 @app.route("/deleteMeeting", methods=['POST'])
