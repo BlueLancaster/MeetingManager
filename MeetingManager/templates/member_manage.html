@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-3">
+        <div class="col-sm-3 col-xs-12">
             <div>
                 <h2>人員列表</h2>
                 <button type="button" class="btn btn-success text-end ms-auto" id="createNewBtn" onclick="create()">建立</button>
@@ -16,7 +16,7 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-9" id="inputArea" style="display:none">
+        <div class="col-sm-9 col-xs-12" id="inputArea" style="display:none">
             <form method="post" action="{{url_for('submitMemberData')}}">
                 <div>
                     <h2>功能列</h2>

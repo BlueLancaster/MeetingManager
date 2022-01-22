@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-3">
+        <div class="col-sm-3 col-xs-12">
             <div>
                 <h2>會議列表</h2>
             </div>
@@ -17,17 +17,17 @@
             </div>
 
         </div>
-        <div class="col-9" id="inputArea" style="display: none">
+        <div class="col-sm-9 col-xs-12" id="inputArea" style="display: none">
             <form method="post" action="{{url_for('submitAbsent')}}">
-                <div class="container">
+                <div>
                     <h2>功能列</h2>
                     <button type="submit" class="btn btn-success text-end ms-auto">儲存</button>
                 </div>
-                <div class="container">
+                <div>
                     <h2>與會人員列表</h2>
                     <h5>(打勾代表有出席)</h5>
                 </div>
-                <div class="container">
+                <div>
                     <div id="checkBoxArea" style="border:gray dashed; width:400px; background-color:#fafafa;">
                     </div>
                 </div>
