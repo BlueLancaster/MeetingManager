@@ -58,6 +58,7 @@ class Discussion(db.Model):
     brief = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text, nullable=False)
     result = db.Column(db.Text)
+    executionCond = db.Column(db.Text)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
     def __init__(self, brief, content, result):
@@ -76,6 +77,7 @@ class Extempore(db.Model):
     brief = db.Column(db.Text, nullable=False)
     content = db.Column(db.Text, nullable=False)
     result = db.Column(db.Text)
+    executionCond = db.Column(db.Text)
     meetingId = db.Column(db.Integer, db.ForeignKey('meeting.id'))
 
     def __init__(self, brief, content, result):

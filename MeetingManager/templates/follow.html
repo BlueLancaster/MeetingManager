@@ -5,9 +5,6 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        {% if not meetingList %}
-        <h5>尚未有即將到來的會議</h5>
-        {% endif %}
         {% for meeting in meetingList %}
         <div class="shadow p-3 mb-5 bg-body rounded">
             <h4 style="display: inline;">會議名稱</h4>

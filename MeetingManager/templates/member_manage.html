@@ -108,11 +108,11 @@
 
 {% with messages  = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <script>
-        $(document).ready(function (){
-                toastr['success']('成功儲存一筆人員資料', '成功');
-        });
-    </script>
+        <script>
+            $(document).ready(function (){
+                toastr['{{messages[0][0]}}']('{{messages[0][1]}}','{{messages[0][0]}}');
+            });
+        </script>
     {%endif%}
 {% endwith %}
 
@@ -323,13 +323,13 @@
     </div>
     <div class="mb-3">
         <h5 for="officePhone" class="form-label">辦公室電話</h5>
-        <input class="form-control" id="officePhone" name="officePhone" placeholder="">
+        <input type="tel" className="form-control" id="officePhone" name="officePhone" maxLength="10">
     </div>
 </script>
 <script id="assistant">
     <div class="mb-3">
         <h5 for="officePhone" class="form-label">辦公室電話</h5>
-        <input class="form-control" id="officePhone" name="officePhone" placeholder="">
+        <input type="tel" class="form-control" id="officePhone" name="officePhone" maxlength="10">
     </div>
 </script>
 <script id="teacher">
@@ -347,7 +347,7 @@
     </div>
     <div class="mb-3">
         <h5 for="officePhone" class="form-label">辦公室電話</h5>
-        <input class="form-control" id="officePhone" name="officePhone" placeholder="">
+        <input type="tel" className="form-control" id="officePhone" name="officePhone" maxLength="10">
     </div>
     <div class="mb-3">
         <h5 for="address" class="form-label">聯絡地址</h5>
@@ -369,7 +369,7 @@
     </div>
     <div class="mb-3">
         <h5 for="officePhone" class="form-label">辦公室電話</h5>
-        <input class="form-control" id="officePhone" name="officePhone" placeholder="">
+        <input type="tel" className="form-control" id="officePhone" name="officePhone" maxLength="10">
     </div>
     <div class="mb-3">
         <h5 for="address" class="form-label">聯絡地址</h5>

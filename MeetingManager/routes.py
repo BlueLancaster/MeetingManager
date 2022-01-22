@@ -21,19 +21,6 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/notification")
-@login_required
-def notification():
-    localtime = time.strftime('%Y-%m-%d', time.localtime())
-    upcomingMeeting = Meeting.query.order_by(Meeting.datetime).all()
-    resultList = []
-    for meeting in upcomingMeeting:
-        if meeting.datetime > localtime:
-            datetime = meeting.datetime.split('T', 1)
-            resultList.append([meeting.name, datetime[0], datetime[1], meeting.place, meeting.id])
-    return render_template("notification.html", meetingList=resultList)
-
-
 @app.route("/meetingManage")
 @login_required
 def meetingManage():
@@ -90,6 +77,32 @@ def absent():
         return redirect(url_for('home'))
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template('absent.html', meetingList=meetingList)
+
+
+@app.route("/notification")
+@login_required
+def notification():
+    localtime = time.strftime('%Y-%m-%d', time.localtime())
+    attendMeeting = Attend.query.filter_by(memberId=current_user.id).all()
+    meetingIdList = []
+    for meeting in attendMeeting:
+        meetingIdList.append(meeting.meetingId)
+    upcomingMeeting = Meeting.query.filter(Meeting.id.in_(meetingIdList)).order_by(Meeting.datetime).all()
+    resultList = []
+    for meeting in upcomingMeeting:
+        if meeting.datetime > localtime:
+            datetime = meeting.datetime.split('T', 1)
+            resultList.append([meeting.name, datetime[0], datetime[1], meeting.place, meeting.id])
+    return render_template("notification.html", meetingList=resultList)
+
+
+@app.route("/follow")
+@login_required
+def follow():
+    discussionList = Discussion.query.all()
+    extemporeList = Extempore.query.all()
+
+    return render_template("follow.html")
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -216,7 +229,17 @@ def submitMeetingMinutes():
     extemporeResultList = request.form.getlist('extemporeResult')
     meeting = Meeting.query.filter_by(id=request.values.get('id')).first()
     attendeeList = request.form.getlist('attendee')
+    if data.get("chairman") not in attendeeList:
+        attendeeList.append(data.get("chairman"))
+    if data.get("minuteTaker") not in attendeeList:
+        attendeeList.append(data.get("minuteTaker"))
     observerList = request.form.getlist('observer')
+    if data.get("chairman") in observerList:
+        observerList.remove(data.get("chairman"))
+        flash('請勿將主席加入列席人員，已自動修正為出席人員', 'warning')
+    if data.get("minuteTaker") in observerList:
+        observerList.remove(data.get("minuteTaker"))
+        flash('請勿將記錄人加入列席人員，已自動修正為出席人員', 'warning')
     if meeting is None:
         newMeeting = Meeting(data.get('name'), data.get('type'), data.get('date'), data.get('place'),
                              data.get('welcomeSpeech'))
@@ -237,11 +260,14 @@ def submitMeetingMinutes():
                 extempore = Extempore(extemporeBriefList[i], extemporeContentList[i], extemporeResultList[i])
                 newMeeting.extempore.append(extempore)
                 db.session.add(extempore)
-        for attendeeId in attendeeList:
-            newMeeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
-        for observerId in observerList:
-            newMeeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
         db.session.add(newMeeting)
+        db.session.commit()
+        time.sleep(0.2)
+        newMeeting = Meeting.query.filter_by(name=data.get('name')).first()
+        for attendeeId in attendeeList:
+            newMeeting.attendanceAssociation.append(Attend(newMeeting.id, eval(attendeeId), "出席"))
+        for observerId in observerList:
+            newMeeting.attendanceAssociation.append(Attend(newMeeting.id, eval(observerId), "列席"))
         db.session.commit()
     else:
         meeting.set(data.get('name'), data.get('type'), data.get('date'), data.get('place'), data.get('welcomeSpeech'))
@@ -310,11 +336,11 @@ def submitMeetingMinutes():
                 db.session.delete(attendee)
 
         for attendeeId in attendeeList:
-            meeting.attendanceAssociation.append(Attend(meeting.id, attendeeId, "出席"))
+            meeting.attendanceAssociation.append(Attend(meeting.id, eval(attendeeId), "出席"))
         for observerId in observerList:
-            meeting.attendanceAssociation.append(Attend(meeting.id, observerId, "列席"))
+            meeting.attendanceAssociation.append(Attend(meeting.id, eval(observerId), "列席"))
         db.session.commit()
-    flash('儲存成功', 'success')
+    flash('會議資料儲存成功', 'success')
     return redirect(url_for('meetingManage'))
 
 
@@ -458,6 +484,7 @@ def sendMeetingNotice():
     meetingId = request.values.get('meetingId')
     receiverList = []
     attendeeList = Attend.query.filter_by(meetingId=meetingId).all()
+    meeting = Meeting.query.filter_by(id=meetingId).first()
     if not attendeeList:
         return jsonify({'title': '失敗', 'type': 'warning', 'result': '請先設定與會人員，並先儲存到資料庫'})
     for attendee in attendeeList:
@@ -467,7 +494,8 @@ def sendMeetingNotice():
     msg = email.message.EmailMessage()
     msg['From'] = senderMail
     msg['Subject'] = '開會通知'
-    msg.add_alternative('第一次會議在2020/1/1舉行')
+    meetingTime = meeting.datetime.split('T')
+    msg.add_alternative(meeting.name + '在' + meetingTime[0] + '的' + meetingTime[1] + '舉行')
     sever = smtplib.SMTP_SSL('smtp.gmail.com', 465)
     sever.login(senderMail, senderPassword)
     msg['To'] = ', '.join(receiverList)
@@ -487,6 +515,9 @@ def deleteMeeting():
 @app.route("/deleteMember", methods=['POST'])
 def deleteMember():
     memberId = request.values.get('deleteId')
+    if memberId == current_user.id:
+        flash('不能刪除自己', 'warning')
+        return redirect(url_for('memberManage'))
     db.session.delete(Member.query.filter_by(id=memberId).first())
     db.session.commit()
     return redirect(url_for('memberManage'))
