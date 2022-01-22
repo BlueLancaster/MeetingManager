@@ -5,23 +5,100 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        {% for meeting in meetingList %}
+
         <div class="shadow p-3 mb-5 bg-body rounded">
-            <h4 style="display: inline;">會議名稱</h4>
-            <button class="btn btn-info collapseBtn" style="display: inline;height: 35px;border-width: 0px;line-height: 15px;" type="button" data-bs-toggle="collapse" data-bs-target="#meeting{{meeting[4]}}" aria-expanded="true" aria-controls="meeting{{meeting[4]}}">+</button>
-            <p>{{meeting[0]}}</p>
-            <div class="collapse" id="meeting{{meeting[4]}}">
-                <h4>日期</h4>
-                <p>{{meeting[1]}}</p>
-                <h4>時間</h4>
-                <p>{{meeting[2]}}</p>
-                <h4>地點</h4>
-                <p>{{meeting[3]}}</p>
+            <h4 style="display: inline;">執行中的討論事項</h4>
+            <button class="btn btn-info collapseBtn" style="display: inline;height: 35px;border-width: 0px;line-height: 15px;" type="button" data-bs-toggle="collapse" data-bs-target="#underwayBlock1" aria-expanded="true" aria-controls="underwayBlock1">+</button>
+            <div class="collapse container" style="background:#ECFFFF;" id="underwayBlock1">
+            {% for element in underwayList1 %}
+                <div class="container" style="background:#ECFFFF;">
+                    <h4>決議</h4>
+                    <p>{{element.result}}</p>
+                    <h4>屬於的會議名稱</h4>
+                    <p>{{element.meeting.name}}}</p>
+                    <h4>執行情況</h4>
+                    <p>{{element.completeOrNot}}</p>
+                    <form method="post" action="{{url_for('confirmComplete')}}">
+                        <input name="id" value="{{element.id}}" style="display: none">
+                        <input name="type" value="discussion" style="display: none">
+                        <button class="btn btn-success" type="submit">標示為完成</button>
+                    </form>
+
+                </div>
+            {% endfor %}
             </div>
+
         </div>
-        {% endfor %}
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <h4 style="display: inline;">執行中的臨時動議</h4>
+            <button class="btn btn-info collapseBtn" style="display: inline;height: 35px;border-width: 0px;line-height: 15px;" type="button" data-bs-toggle="collapse" data-bs-target="#underwayBlock2" aria-expanded="true" aria-controls="underwayBlock2">+</button>
+
+            <div class="collapse container" style="background:#F0F0F0;" id="underwayBlock2">
+            {% for element in underwayList2 %}
+                <div class="container" style="background:#F0F0F0;">
+                    <h4>決議</h4>
+                    <p>{{element.result}}</p>
+                    <h4>屬於的會議名稱</h4>
+                    <p>{{element.meeting.name}}}</p>
+                    <h4>執行情況</h4>
+                    <p>{{element.completeOrNot}}</p>
+                    <form method="post" action="{{url_for('confirmComplete')}}">
+                        <input name="id" value="{{element.id}}" style="display: none">
+                        <input name="type" value="extempore" style="display: none">
+                        <button class="btn btn-success" type="submit">標示為完成</button>
+                    </form>
+
+                </div>
+            {% endfor %}
+            </div>
+
+
+        </div>
+
+        <div class="shadow p-3 mb-5 bg-body rounded">
+            <h4 style="display: inline;">完成的事項</h4>
+            <button class="btn btn-info collapseBtn" style="display: inline;height: 35px;border-width: 0px;line-height: 15px;" type="button" data-bs-toggle="collapse" data-bs-target="#completeBlock" aria-expanded="true" aria-controls="completeBlock">+</button>
+            {% for element in completeList %}
+            <div class="collapse container" id="completeBlock" style="background:#F0F0F0;">
+                <h4>決議</h4>
+                <p>{{element.result}}</p>
+                <h4>屬於的會議名稱</h4>
+                <p>{{element.meeting.name}}</p>
+                <h4>執行情況</h4>
+                <p>{{element.completeOrNot}}</p>
+            </div>
+            {% endfor %}
+        </div>
+
     </div>
 </div>
+
+<div class="modal fade" id="confirmModal" tabindex="-1" aria-labelledby="confirmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="confirmModalLabel">確定要標示為完成嗎?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+        <form method="post" action="{{url_for('deleteMeeting')}}">
+          <div class="modal-body">
+              <p>一旦確定標示為完成中將無法更改:</p>
+              <p>事項編號:</p>
+              <input type="text" class="form-control" id="confirmId" name="deleteId" readonly="readonly">
+              <p>事項類型:</p>
+              <input type="text" class="form-control" id="confirmType" name="deleteId" readonly="readonly">
+              <p>事項決議:</p>
+              <input type="text" class="form-control" id="confirmResult" readonly="readonly">
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary">confirm</button>
+          </div>
+        </form>
+    </div>
+  </div>
+</div>
+
 
 
 <script>

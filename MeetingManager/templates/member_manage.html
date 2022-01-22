@@ -106,15 +106,7 @@
 </div>
 
 
-{% with messages  = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-        <script>
-            $(document).ready(function (){
-                toastr['{{messages[0][0]}}']('{{messages[0][1]}}','{{messages[0][0]}}');
-            });
-        </script>
-    {%endif%}
-{% endwith %}
+
 
 
 

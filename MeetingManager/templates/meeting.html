@@ -59,13 +59,13 @@
                         </div>
                     </div>
                     <div style="margin-top: 5px">
-                        <h5>新增報告事項</h5>
+                        <h5>報告事項</h5>
                         <div style="margin-top: 5px " id="input_announce">
 
                         </div>
                     </div>
                     <div style="margin-top: 5px">
-                        <h5>新增臨時動議</h5>
+                        <h5>臨時動議</h5>
                         <div style="margin-top: 5px " id="input_extempore">
                         </div>
                     </div>
@@ -102,15 +102,6 @@
 </div>
 
 
-{% with messages  = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <script>
-        $(document).ready(function (){
-                toastr['success']('成功儲存個人資料', '成功');
-        });
-    </script>
-    {%endif%}
-{% endwith %}
 
 
 <script type="text/javascript">

@@ -25,6 +25,7 @@ def home():
 @login_required
 def meetingManage():
     if not current_user.permission:
+        flash('您的權限不足', 'danger')
         return redirect(url_for('meeting'))
     memberList = Member.query.with_entities(Member.id, Member.name).all()
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
@@ -47,6 +48,7 @@ def meeting():
 @login_required
 def memberManage():
     if not current_user.permission:
+        flash('您的權限不足', 'danger')
         return redirect(url_for('member'))
     memberList = Member.query.with_entities(Member.id, Member.name).all()
     return render_template("member_manage.html", memberList=memberList)
@@ -65,6 +67,7 @@ def member():
 @login_required
 def fileManage():
     if not current_user.permission:
+        flash('您的權限不足', 'danger')
         return redirect(url_for('home'))
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template('file_manage.html', meetingList=meetingList)
@@ -74,6 +77,7 @@ def fileManage():
 @login_required
 def absent():
     if not current_user.permission:
+        flash('您的權限不足', 'danger')
         return redirect(url_for('home'))
     meetingList = Meeting.query.with_entities(Meeting.id, Meeting.name).all()
     return render_template('absent.html', meetingList=meetingList)
@@ -99,10 +103,15 @@ def notification():
 @app.route("/follow")
 @login_required
 def follow():
-    discussionList = Discussion.query.all()
-    extemporeList = Extempore.query.all()
-
-    return render_template("follow.html")
+    if not current_user.permission:
+        flash('您的權限不足', 'danger')
+        return redirect(url_for('home'))
+    completeList = Discussion.query.filter_by(completeOrNot=True).all() + Extempore.query.filter_by(
+        completeOrNot=True).all()
+    underwayList1 = Discussion.query.filter_by(completeOrNot=False).all()
+    underwayList2 = Extempore.query.filter_by(completeOrNot=False).all()
+    return render_template("follow.html", underwayList1=underwayList1,
+                           underwayList2=underwayList2, completeList=completeList)
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -113,14 +122,18 @@ def login():
         user = Member.query.filter_by(email=request.values.get("email")).first()
         if user and user.password == request.values.get("password"):
             login_user(user)
-            flash('登入成功', 'success')
+            flash('登入成功，歡迎回來，' + current_user.name, 'success')
             return redirect(url_for('home'))
+        else:
+            flash('帳號或密碼錯誤', 'error')
+            return render_template('login.html')
     return render_template('login.html')
 
 
 @app.route("/logout")
 def logout():
     logout_user()
+    flash('登出成功', 'success')
     return redirect(url_for('home'))
 
 
@@ -436,7 +449,7 @@ def submitMemberData():
             member.set(data.get('name'), data.get('sex'), data.get('phone'), data.get('email'), data.get('identity'),
                        data.get('password'), eval(data.get("permission")))
     db.session.commit()
-    flash('儲存成功', 'success')
+    flash('會員資料儲存成功', 'success')
     if not current_user.permission:
         return redirect(url_for('member'))
     else:
@@ -453,7 +466,7 @@ def submitFile():
         appendix = Appendix(request.values.get('name'), filePath, eval(request.values.get('belongingMeeting')))
         db.session.add(appendix)
         db.session.commit()
-    flash('儲存成功', 'success')
+    flash('檔案上傳成功', 'success')
     return redirect(url_for('fileManage'))
 
 
@@ -475,8 +488,21 @@ def submitAbsent():
             else:
                 attendee.attendOrNot = 0
     db.session.commit()
-    flash('儲存成功', 'success')
+    flash('出缺席紀錄儲存成功', 'success')
     return redirect(url_for('absent'))
+
+
+@app.route("/confirmComplete", methods=['POST'])
+def confirmComplete():
+    if request.values.get('type') == 'discussion':
+        discussion = Discussion.query.filter_by(id=request.values.get('id')).first()
+        discussion.completeOrNot = 1
+    elif request.values.get('type') == 'extempore':
+        extempore = Extempore.query.filter_by(id=request.values.get('id')).first()
+        extempore.completeOrNot = 1
+    db.session.commit()
+    flash('更改情況成功', 'success')
+    return redirect(url_for('follow'))
 
 
 @app.route("/sendMeetingNotice", methods=['POST'])

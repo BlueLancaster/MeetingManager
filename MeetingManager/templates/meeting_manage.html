@@ -175,20 +175,6 @@
 
 
 
-{% with messages  = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <script>
-    $(document).ready(function (){
-        {% for message in messages %}
-        toastr['{{message[0]}}']('{{ message[1] }}', '訊息');
-        {% endfor %}
-    });
-    </script>
-    {% endif  %}
-{% endwith %}
-
-
-
 
 <script type="text/javascript">
 
