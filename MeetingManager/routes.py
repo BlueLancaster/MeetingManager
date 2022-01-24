@@ -587,7 +587,7 @@ def deleteMeeting():
 @app.route("/deleteMember", methods=['POST'])
 def deleteMember():
     memberId = request.values.get('deleteId')
-    if memberId == current_user.id:
+    if eval(memberId) == current_user.id:
         flash('不能刪除自己', 'warning')
         return redirect(url_for('memberManage'))
     db.session.delete(Member.query.filter_by(id=memberId).first())

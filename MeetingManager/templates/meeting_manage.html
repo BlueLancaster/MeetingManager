@@ -8,7 +8,7 @@
 {% block content %}
 <div class="container">
     <div class="row">
-        <div class="col-sm-3 col-xs-12" style="margin-bottom: 10px;">
+        <div class="col-md-3 col-sm-12" style="margin-bottom: 10px;">
            <div>
             <h2>會議列表</h2>
             <button type="button" class="btn btn-success text-end ms-auto"  id="createNewBtn" onclick="create()">建立</button>
@@ -20,7 +20,7 @@
                 {% endfor %}
             </div>
         </div>
-        <div class="col-sm-9 col-xs-12 " id="inputArea" style="display:none">
+        <div class="col-md-9 col-sm-12 " id="inputArea" style="display:none">
             <form method="post" action="{{url_for('submitMeetingMinutes')}}">
                 <div class="">
                     <h2>功能列</h2>
