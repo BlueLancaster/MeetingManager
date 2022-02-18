@@ -35,12 +35,6 @@ class Meeting(db.Model):
         self.welcomeSpeech = welcomeSpeech
 
 
-'''
-meeting=Meeting(name='mouse',type=4,datetime='4/4',place='44')
-member=Member(name='a',sex='girl',phone='4234',email='a4122@yahoo.com',identity=4,password='4645')
-'''
-
-
 class Announce(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
